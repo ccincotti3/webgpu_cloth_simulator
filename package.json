@@ -1,0 +1,19 @@
+{
+  "name": "cloth_simulator",
+  "version": "1.0.0",
+  "description": "A simulator for cloth.",
+  "main": "index.js",
+  "author": "Carmen Cincotti <ccincotti3@gmail.com>",
+  "license": " GPL-3.0-only",
+  "private": true,
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@webgpu/types": "^0.1.16",
+    "parcel": "^2.5.0",
+    "typescript": "^4.6.4"
+  }
+}
