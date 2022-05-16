@@ -1,28 +1,14 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="utf-8" />
+  <head>
+    <meta charset="utf-8"/>
     <title>My First Parcel App</title>
     <link rel="stylesheet" href="styles.css" />
-</head>
-
-<body>
+    <script type="module" src="app.ts"></script>
+  </head>
+  <body>
     <h1>Hello, World!</h1>
     <canvas id="canvas-container"></canvas>
     <div id="error-text"></div>
-</body>
-<script type="module">
-    import ClothSimulator from "./app"
-    (async () => {
-        try {
-            const cs = await ClothSimulator.init("canvas-container")
-            console.log(cs)
-        } catch (e) {
-            document.getElementById("error-text").innerHTML = e
-            throw (e)
-        }
-    })()
-</script>
-
+  </body>
 </html>

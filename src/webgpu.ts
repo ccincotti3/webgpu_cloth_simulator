@@ -9,8 +9,11 @@ export default class WebGPU {
         this.device = device
     }
     static async init(canvasId: string): Promise<WebGPU> {
-        const maybeCanvas = document.getElementById(canvasId) as HTMLCanvasElement
-        const context = maybeCanvas.getContext('webgpu');
+        const canvas = document.getElementById(canvasId)
+        if(!canvas || !(canvas instanceof HTMLCanvasElement)) {
+            throw new Error(`WebGPU cannot be initialized - Element with id ${canvasId} is not a Canvas Element`)
+        }
+        const context = canvas.getContext('webgpu');
         if (!context) {
             throw new Error(`WebGPU cannot be initialized - Element with id ${canvasId} does not support WebGPU, does your browser support it?`)
         }
@@ -29,6 +32,24 @@ export default class WebGPU {
             throw new Error("WebGPU cannot be initialized - Device has been lost")
         });
 
+        // ~~ CONFIGURE THE SWAP CHAIN ~~
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        const presentationSize = [
+          canvas.clientWidth * devicePixelRatio,
+          canvas.clientHeight * devicePixelRatio,
+        ];
+        const presentationFormat = context.getPreferredFormat(adapter);
+
+        context.configure({
+          device,
+          format: presentationFormat,
+          size: presentationSize,
+        });
+
         return new WebGPU(context, device)
+    }
+
+    registerShader() {
+
     }
 }
