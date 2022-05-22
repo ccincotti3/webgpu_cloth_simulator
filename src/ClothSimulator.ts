@@ -1,15 +1,14 @@
-import WebGPU from "./webgpu"
+import Model from "./Model"
 
 export default class ClothSimulator {
-    wgpu: WebGPU
-    constructor(wgpu: WebGPU) {
-        this.wgpu = wgpu
+    private collisionModels: Model[]
+    constructor() {
+        this.collisionModels = []
     }
-    static async init(canvasId: string) {
-       const wgpu = await WebGPU.init(canvasId)
-       return new ClothSimulator(wgpu)
+    addCollisionModel(model: Model) {
+        this.collisionModels.push(model)
     }
+    addClothModel(model: Model) {}
     update(){}
-    draw(){}
 }
 

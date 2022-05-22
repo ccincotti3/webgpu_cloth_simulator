@@ -10,7 +10,9 @@
     "start": "parcel src/index.html",
     "build": "parcel build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "gl-matrix": "^3.4.3"
+  },
   "devDependencies": {
     "@webgpu/types": "^0.1.16",
     "parcel": "^2.5.0",
