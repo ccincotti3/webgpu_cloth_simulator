@@ -1,10 +1,10 @@
-import { mat4 } from "gl-matrix"
+import { mat4 } from "gl-matrix";
 
 export interface Mesh {
-    vertices: Float32Array
-    uvs: Float32Array
-    normals: Float32Array
-    indices: Uint16Array
+  vertices: Float32Array;
+  uvs: Float32Array;
+  normals: Float32Array;
+  indices: Uint16Array;
 }
 
 export type TransformationMatrix = mat4;

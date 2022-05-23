@@ -1,5 +1,5 @@
-export const FRAGMENT_ENTRY_POINT = "fragment_main"
-export const VERTEX_ENTRY_POINT = "vertex_main"
+export const FRAGMENT_ENTRY_POINT = "fragment_main";
+export const VERTEX_ENTRY_POINT = "vertex_main";
 
 export default `
     struct VertexOut {
@@ -24,4 +24,4 @@ export default `
     {
         return vec4(1.0, 1.0, 0.0, 1.0);
     } 
-`
+`;
