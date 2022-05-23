@@ -673,10 +673,10 @@
   resolved "https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz#2f8bb441434d163b35fb8ffdccd7138927ffb8c0"
   integrity sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==
 
-"@webgpu/types@^0.1.16":
-  version "0.1.16"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.16.tgz#1f05497b95b7c013facf7035c8e21784645f5cc4"
-  integrity sha512-9E61voMP4+Rze02jlTXud++Htpjyyk8vw5Hyw9FGRrmhHQg2GqbuOfwf5Klrb8vTxc2XWI3EfO7RUHMpxTj26A==
+"@webgpu/types@^0.1.17":
+  version "0.1.17"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.17.tgz#91e8ec9fd6a1e63945ef12bff11394949ea1a583"
+  integrity sha512-M8INbXsMdkWtVsSHRPEiTXHe0S4gxMhYA/Kz4pNoUF9IXd3PHMi6/2n8EAsqkAEdna+aeCm2RmscWV0hsmIf0Q==
 
 abortcontroller-polyfill@^1.1.9:
   version "1.7.3"
