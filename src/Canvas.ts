@@ -2,12 +2,15 @@ import { mat4 } from "gl-matrix";
 import { createDefaultPipeline } from "./Pipeline";
 import { TransformationMatrix } from "./types";
 
+type PresentationSize = [number, number];
+
 /**
  * Canvas class that maintains all WebGPU code.
  */
 export default class GPUCanvas {
   private context: GPUCanvasContext;
   private presentationFormat: GPUTextureFormat;
+  private presentationSize: PresentationSize;
   readonly device: GPUDevice;
   width: number;
   height: number;
@@ -15,12 +18,14 @@ export default class GPUCanvas {
     context: GPUCanvasContext,
     device: GPUDevice,
     presentationFormat: GPUTextureFormat,
+    presentationSize: PresentationSize,
     width: number,
     height: number
   ) {
     this.context = context;
     this.device = device;
     this.presentationFormat = presentationFormat;
+    this.presentationSize = presentationSize;
     this.width = width;
     this.height = height;
   }
@@ -55,7 +60,7 @@ export default class GPUCanvas {
 
     // ~~ CONFIGURE THE SWAP CHAIN ~~
     const devicePixelRatio = window.devicePixelRatio || 1;
-    const presentationSize = [
+    const presentationSize: PresentationSize = [
       canvas.clientWidth * devicePixelRatio,
       canvas.clientHeight * devicePixelRatio,
     ];
@@ -71,6 +76,7 @@ export default class GPUCanvas {
       context,
       device,
       presentationFormat,
+      presentationSize,
       canvas.width,
       canvas.height
     );
@@ -78,7 +84,7 @@ export default class GPUCanvas {
 
   draw(
     drawCb: (
-      setCameraMatrixFn: (mat: Float32Array) => void,
+      setModelViewMatrixFn: (mat: Float32Array) => void,
       drawFunctions: GPURenderPassEncoder
     ) => void /*vertices: Float32Array*/
   ) {
@@ -105,7 +111,8 @@ export default class GPUCanvas {
         },
       ],
     });
-    const setCameraMatrix = (mat: Float32Array) => {
+
+    const setModelViewMatrix = (mat: Float32Array) => {
       this.device.queue.writeBuffer(
         uniformBuffer,
         0,
@@ -117,11 +124,17 @@ export default class GPUCanvas {
 
     // set reasonable default
 
-    setCameraMatrix(mat4.create() as Float32Array);
+    setModelViewMatrix(mat4.create() as Float32Array);
 
     // ~~ Define render loop ~~
     const frame = () => {
       const commandEncoder = this.device.createCommandEncoder();
+
+      const depthTexture = this.device.createTexture({
+        size: this.presentationSize,
+        format: "depth24plus",
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
 
       // ~~ CREATE RENDER PASS DESCRIPTOR ~~
       const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -133,6 +146,13 @@ export default class GPUCanvas {
             storeOp: "store",
           },
         ],
+        depthStencilAttachment: {
+          view: depthTexture.createView(),
+
+          depthClearValue: 1.0,
+          depthLoadOp: "clear",
+          depthStoreOp: "store",
+        },
       };
 
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
@@ -140,7 +160,7 @@ export default class GPUCanvas {
       passEncoder.setPipeline(renderPipeline.pipeline);
       passEncoder.setBindGroup(0, uniformBindGroup);
 
-      drawCb(setCameraMatrix, passEncoder);
+      drawCb(setModelViewMatrix, passEncoder);
 
       passEncoder.end();
 

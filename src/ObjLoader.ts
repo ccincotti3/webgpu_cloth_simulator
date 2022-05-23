@@ -85,7 +85,7 @@ export default class ObjLoader {
       for (const faces of cachedFaces) {
         for (const faceString of faces) {
           // If we already saw this, add to indices list.
-          if (cache[faceString]) {
+          if (cache[faceString] !== undefined) {
             finalIndices.push(cache[faceString]);
             continue;
           }
@@ -107,6 +107,7 @@ export default class ObjLoader {
       }
     }
 
+    console.log(finalIndices, finalVertices);
     return {
       vertices: new Float32Array(finalVertices),
       uvs: new Float32Array(finalUvs),

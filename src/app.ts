@@ -3,7 +3,7 @@ import Model from "./Model";
 import ObjLoader from "./ObjLoader";
 import Canvas from "./Canvas";
 import Camera from "./Camera";
-import { vec3 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import BufferFactory from "./BufferFactory";
 
 const OBJECT_URL: string = "objs/bunny.obj";
@@ -27,15 +27,18 @@ const OBJECT_URL: string = "objs/bunny.obj";
     const perspectiveCamera = new Camera(
       (2 * Math.PI) / 5,
       aspectRatio,
-      1,
+      0.1,
       100
     );
-    perspectiveCamera.translation = vec3.fromValues(0, 0, 5);
+    perspectiveCamera.translation = vec3.fromValues(0, 0, 3);
 
     // Create models
     const data = objLoader.parse(objFile);
     const model = new Model(data);
-    const { indices, vertices } = model.mesh;
+    model.scale = vec3.fromValues(10, 10, 1);
+    model.translation = vec3.fromValues(0, 0, 0);
+
+    const { indices, vertices, normals } = model.mesh;
 
     const [vertexBuffer] = bufferFactory.create(
       vertices,
@@ -46,17 +49,27 @@ const OBJECT_URL: string = "objs/bunny.obj";
       GPUBufferUsage.INDEX
     );
 
+    const [normalBuffer] = bufferFactory.create(normals, GPUBufferUsage.VERTEX);
+
     // Start loop
-    gpuCanvas.draw((setCameraMatrix, drawHelper) => {
+    gpuCanvas.draw((setModelViewMatrix, drawHelper) => {
       const now = Date.now() / 1000;
       perspectiveCamera.rotationXYZ = vec3.fromValues(
         0,
-        0,
-        (1 + Math.cos(now)) * 3.14
+        (1 + Math.cos(now)) * 3.14,
+        0
       );
-      setCameraMatrix(perspectiveCamera.projectionViewMatrix as Float32Array);
+      const modelViewProjectionMatrix = mat4.create();
+
+      mat4.multiply(
+        modelViewProjectionMatrix,
+        model.modelMatrix,
+        perspectiveCamera.projectionViewMatrix
+      );
+      setModelViewMatrix(modelViewProjectionMatrix as Float32Array);
 
       drawHelper.setVertexBuffer(0, vertexBuffer);
+      drawHelper.setVertexBuffer(1, normalBuffer);
       drawHelper.setIndexBuffer(indexBuffer, "uint16");
       drawHelper.drawIndexed(indexBufferLength);
     });

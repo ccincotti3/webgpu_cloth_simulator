@@ -5,10 +5,9 @@ import defaultShader, {
 
 interface ShaderDescription {
   code: string;
-  vertexEntryPoint: string;
   fragmentEntryPoint: string;
-  attributes: GPUVertexAttribute[];
-  arrayStride: number;
+  vertexEntryPoint: string;
+  bufferLayout: GPUVertexBufferLayout[];
 }
 
 class RenderPipeline {
@@ -24,20 +23,12 @@ class RenderPipeline {
       code: shaderDescription.code,
     });
 
-    const vertexBufferDescriptors: GPUVertexBufferLayout[] = [
-      {
-        attributes: shaderDescription.attributes,
-        arrayStride: shaderDescription.arrayStride,
-        stepMode: "vertex",
-      },
-    ];
-
     this.pipeline = this.device.createRenderPipeline({
       layout: "auto",
       vertex: {
         module: shaderModule,
         entryPoint: shaderDescription.vertexEntryPoint,
-        buffers: vertexBufferDescriptors,
+        buffers: shaderDescription.bufferLayout,
       },
       fragment: {
         module: shaderModule,
@@ -50,6 +41,12 @@ class RenderPipeline {
       },
       primitive: {
         topology: "triangle-list",
+        cullMode: "back",
+      },
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: "less",
+        format: "depth24plus",
       },
     });
   }
@@ -60,15 +57,31 @@ export const createDefaultPipeline = (
   presentationFormat: GPUTextureFormat
 ) =>
   new RenderPipeline(device, presentationFormat, {
-    arrayStride: 12,
     code: defaultShader,
     fragmentEntryPoint: FRAGMENT_ENTRY_POINT,
     vertexEntryPoint: VERTEX_ENTRY_POINT,
-    attributes: [
+    bufferLayout: [
       {
-        format: "float32x3",
-        offset: 0,
-        shaderLocation: 0,
+        arrayStride: Float32Array.BYTES_PER_ELEMENT * 3,
+        attributes: [
+          {
+            format: "float32x3",
+            offset: 0,
+            shaderLocation: 0,
+          },
+        ],
+        stepMode: "vertex",
+      },
+      {
+        arrayStride: Float32Array.BYTES_PER_ELEMENT * 3,
+        attributes: [
+          {
+            format: "float32x3",
+            offset: 0,
+            shaderLocation: 1,
+          },
+        ],
+        stepMode: "vertex",
       },
     ],
   });

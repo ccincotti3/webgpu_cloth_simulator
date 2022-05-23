@@ -6,11 +6,13 @@ type EulerOrder = "XYZ" | "YXZ" | "ZYX" | "XZY" | "YZX" | "ZXY";
 export default class Transformable {
   private _translation: mat4;
   private _rotation: mat4;
+  private _scale: mat4;
   private _modelMatrix: ModelMatrix;
 
   constructor() {
     this._translation = mat4.create();
     this._rotation = mat4.create();
+    this._scale = mat4.create();
     this._modelMatrix = mat4.create();
   }
 
@@ -18,6 +20,13 @@ export default class Transformable {
     this._translation[12] = pos[0];
     this._translation[13] = pos[1];
     this._translation[14] = pos[2];
+    this.refreshModelMatrix();
+  }
+
+  set scale(scale: vec3) {
+    this._scale[0] = scale[0];
+    this._scale[5] = scale[1];
+    this._scale[10] = scale[2];
     this.refreshModelMatrix();
   }
 
@@ -36,6 +45,7 @@ export default class Transformable {
   }
 
   private refreshModelMatrix() {
-    mat4.multiply(this._modelMatrix, this._rotation, this._translation);
+    mat4.multiply(this._modelMatrix, this._translation, this._scale);
+    mat4.multiply(this._modelMatrix, this._rotation, this._modelMatrix);
   }
 }
