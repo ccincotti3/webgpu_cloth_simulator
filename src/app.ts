@@ -38,18 +38,7 @@ const OBJECT_URL: string = "objs/bunny.obj";
     model.scale = vec3.fromValues(10, 10, 1);
     model.translation = vec3.fromValues(0, 0, 0);
 
-    const { indices, vertices, normals } = model.mesh;
-
-    const [vertexBuffer] = bufferFactory.create(
-      vertices,
-      GPUBufferUsage.VERTEX
-    );
-    const [indexBuffer, indexBufferLength] = bufferFactory.create(
-      indices,
-      GPUBufferUsage.INDEX
-    );
-
-    const [normalBuffer] = bufferFactory.create(normals, GPUBufferUsage.VERTEX);
+    const gpuBuffers = bufferFactory.createMeshBuffers(model.mesh);
 
     // Start loop
     gpuCanvas.draw((setModelViewMatrix, drawHelper) => {
@@ -68,10 +57,10 @@ const OBJECT_URL: string = "objs/bunny.obj";
       );
       setModelViewMatrix(modelViewProjectionMatrix as Float32Array);
 
-      drawHelper.setVertexBuffer(0, vertexBuffer);
-      drawHelper.setVertexBuffer(1, normalBuffer);
-      drawHelper.setIndexBuffer(indexBuffer, "uint16");
-      drawHelper.drawIndexed(indexBufferLength);
+      drawHelper.setVertexBuffer(0, gpuBuffers.vertices.data);
+      drawHelper.setVertexBuffer(1, gpuBuffers.normals.data);
+      drawHelper.setIndexBuffer(gpuBuffers.indices.data, "uint16");
+      drawHelper.drawIndexed(gpuBuffers.indices.length);
     });
   } catch (e) {
     const errorContainerEl = document.getElementById("error-text");

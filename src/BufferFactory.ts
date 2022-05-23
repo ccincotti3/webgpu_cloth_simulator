@@ -1,4 +1,4 @@
-type GPUBufferLength = number;
+import { Mesh, MeshGPUBuffer, MeshGPUBuffers } from "./types";
 
 export default class BufferFactory {
   private device: GPUDevice;
@@ -9,7 +9,7 @@ export default class BufferFactory {
   create(
     arr: Uint16Array | Float32Array | Int32Array,
     usage: GPUBufferUsageFlags
-  ): [GPUBuffer, GPUBufferLength] {
+  ): MeshGPUBuffer {
     const buffer = this.device.createBuffer({
       size: arr.byteLength,
       usage: usage | GPUBufferUsage.COPY_DST,
@@ -35,6 +35,27 @@ export default class BufferFactory {
     }
 
     buffer.unmap();
-    return [buffer, arr.length];
+    return {
+      data: buffer,
+      length: arr.length,
+    };
+  }
+
+  createMeshBuffers(mesh: Mesh): MeshGPUBuffers {
+    const { indices, vertices, normals, uvs } = mesh;
+
+    const vertexBuffer = this.create(vertices, GPUBufferUsage.VERTEX);
+    const indexBuffer = this.create(indices, GPUBufferUsage.INDEX);
+
+    const normalBuffer = this.create(normals, GPUBufferUsage.VERTEX);
+
+    const uvBuffer = this.create(uvs, GPUBufferUsage.VERTEX);
+
+    return {
+      indices: indexBuffer,
+      normals: normalBuffer,
+      vertices: vertexBuffer,
+      uvs: uvBuffer,
+    };
   }
 }
