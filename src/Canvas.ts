@@ -9,9 +9,9 @@ type PresentationSize = [number, number];
  */
 export default class GPUCanvas {
   private context: GPUCanvasContext;
-  private presentationFormat: GPUTextureFormat;
   private presentationSize: PresentationSize;
   readonly device: GPUDevice;
+  presentationFormat: GPUTextureFormat;
   width: number;
   height: number;
   private constructor(
@@ -84,48 +84,9 @@ export default class GPUCanvas {
 
   draw(
     drawCb: (
-      setModelViewMatrixFn: (mat: Float32Array) => void,
       drawFunctions: GPURenderPassEncoder
     ) => void /*vertices: Float32Array*/
   ) {
-    const renderPipeline = createDefaultPipeline(
-      this.device,
-      this.presentationFormat
-    );
-
-    // ~~ CREATE UNIFORMS FOR TRANSFORMATION MATRIX ~~
-    const uniformBufferSize = 4 * 16; // 4x4 matrix
-    const uniformBuffer = this.device.createBuffer({
-      size: uniformBufferSize,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-
-    const uniformBindGroup = this.device.createBindGroup({
-      layout: renderPipeline.pipeline.getBindGroupLayout(0),
-      entries: [
-        {
-          binding: 0,
-          resource: {
-            buffer: uniformBuffer,
-          },
-        },
-      ],
-    });
-
-    const setModelViewMatrix = (mat: Float32Array) => {
-      this.device.queue.writeBuffer(
-        uniformBuffer,
-        0,
-        mat.buffer,
-        mat.byteOffset,
-        mat.byteLength
-      );
-    };
-
-    // set reasonable default
-
-    setModelViewMatrix(mat4.create() as Float32Array);
-
     // ~~ Define render loop ~~
     const frame = () => {
       const commandEncoder = this.device.createCommandEncoder();
@@ -156,12 +117,7 @@ export default class GPUCanvas {
       };
 
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-
-      passEncoder.setPipeline(renderPipeline.pipeline);
-      passEncoder.setBindGroup(0, uniformBindGroup);
-
-      drawCb(setModelViewMatrix, passEncoder);
-
+      drawCb(passEncoder);
       passEncoder.end();
 
       this.device.queue.submit([commandEncoder.finish()]);

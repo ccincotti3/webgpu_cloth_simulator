@@ -6,7 +6,7 @@ export default class BufferFactory {
     this.device = device;
   }
 
-  create(
+  createMeshBuffer(
     arr: Uint16Array | Float32Array | Int32Array,
     usage: GPUBufferUsageFlags
   ): MeshGPUBuffer {
@@ -44,12 +44,10 @@ export default class BufferFactory {
   createMeshBuffers(mesh: Mesh): MeshGPUBuffers {
     const { indices, vertices, normals, uvs } = mesh;
 
-    const vertexBuffer = this.create(vertices, GPUBufferUsage.VERTEX);
-    const indexBuffer = this.create(indices, GPUBufferUsage.INDEX);
-
-    const normalBuffer = this.create(normals, GPUBufferUsage.VERTEX);
-
-    const uvBuffer = this.create(uvs, GPUBufferUsage.VERTEX);
+    const vertexBuffer = this.createMeshBuffer(vertices, GPUBufferUsage.VERTEX);
+    const indexBuffer = this.createMeshBuffer(indices, GPUBufferUsage.INDEX);
+    const normalBuffer = this.createMeshBuffer(normals, GPUBufferUsage.VERTEX);
+    const uvBuffer = this.createMeshBuffer(uvs, GPUBufferUsage.VERTEX);
 
     return {
       indices: indexBuffer,
@@ -57,5 +55,12 @@ export default class BufferFactory {
       vertices: vertexBuffer,
       uvs: uvBuffer,
     };
+  }
+
+  createUniformBuffer(size: number) {
+    return this.device.createBuffer({
+      size,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
   }
 }

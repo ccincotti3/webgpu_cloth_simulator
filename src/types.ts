@@ -21,6 +21,12 @@ export interface MeshGPUBuffers {
   indices: MeshGPUBuffer;
 }
 
+export interface UniformGPUBindGroup {
+  bindGroup: GPUBindGroup;
+  buffer: GPUBuffer;
+  binding: number;
+}
+
 export type TransformationMatrix = mat4;
 export type ModelMatrix = mat4;
 export type ViewMatrix = mat4;

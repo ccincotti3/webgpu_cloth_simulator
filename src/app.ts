@@ -5,6 +5,7 @@ import Canvas from "./Canvas";
 import Camera from "./Camera";
 import { mat4, vec3 } from "gl-matrix";
 import BufferFactory from "./BufferFactory";
+import { createDefaultPipeline } from "./Pipeline";
 
 const OBJECT_URL: string = "objs/bunny.obj";
 
@@ -16,7 +17,10 @@ const OBJECT_URL: string = "objs/bunny.obj";
       Canvas.init("canvas-container"),
     ]);
 
-    const bufferFactory = new BufferFactory(gpuCanvas.device);
+    const renderPipeline = createDefaultPipeline(
+      gpuCanvas.device,
+      gpuCanvas.presentationFormat
+    );
 
     // Load cloth simulator
     const cs = new ClothSimulator();
@@ -38,10 +42,14 @@ const OBJECT_URL: string = "objs/bunny.obj";
     model.scale = vec3.fromValues(10, 10, 1);
     model.translation = vec3.fromValues(0, 0, 0);
 
-    const gpuBuffers = bufferFactory.createMeshBuffers(model.mesh);
+    renderPipeline.registerModel(model);
+    renderPipeline.registerUniformBuffer(
+      16 * Float32Array.BYTES_PER_ELEMENT,
+      0
+    );
 
     // Start loop
-    gpuCanvas.draw((setModelViewMatrix, drawHelper) => {
+    gpuCanvas.draw((drawHelper) => {
       const now = Date.now() / 1000;
       perspectiveCamera.rotationXYZ = vec3.fromValues(
         0,
@@ -55,12 +63,11 @@ const OBJECT_URL: string = "objs/bunny.obj";
         model.modelMatrix,
         perspectiveCamera.projectionViewMatrix
       );
-      setModelViewMatrix(modelViewProjectionMatrix as Float32Array);
-
-      drawHelper.setVertexBuffer(0, gpuBuffers.vertices.data);
-      drawHelper.setVertexBuffer(1, gpuBuffers.normals.data);
-      drawHelper.setIndexBuffer(gpuBuffers.indices.data, "uint16");
-      drawHelper.drawIndexed(gpuBuffers.indices.length);
+      renderPipeline.updateUniform(
+        renderPipeline.uniforms[0].buffer,
+        modelViewProjectionMatrix as Float32Array
+      );
+      renderPipeline.draw(drawHelper);
     });
   } catch (e) {
     const errorContainerEl = document.getElementById("error-text");

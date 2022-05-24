@@ -107,7 +107,6 @@ export default class ObjLoader {
       }
     }
 
-    console.log(finalIndices, finalVertices);
     return {
       vertices: new Float32Array(finalVertices),
       uvs: new Float32Array(finalUvs),
