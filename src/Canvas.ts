@@ -1,7 +1,3 @@
-import { mat4 } from "gl-matrix";
-import { createDefaultPipeline } from "./Pipeline";
-import { TransformationMatrix } from "./types";
-
 type PresentationSize = [number, number];
 
 /**

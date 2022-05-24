@@ -6,11 +6,6 @@ import defaultShader, {
 } from "./shaders/defaultShader";
 import { MeshGPUBuffers, UniformGPUBindGroup } from "./types";
 
-interface UniformLayout {
-  size: number; // Integer
-  bindingLocation: number;
-}
-
 interface ShaderDescription {
   code: string;
   fragmentEntryPoint: string;
