@@ -4,7 +4,6 @@ import ObjLoader from "./ObjLoader";
 import Canvas from "./Canvas";
 import Camera from "./Camera";
 import { mat4, vec3 } from "gl-matrix";
-import BufferFactory from "./BufferFactory";
 import { createDefaultPipeline } from "./Pipeline";
 
 const OBJECT_URL: string = "objs/bunny.obj";

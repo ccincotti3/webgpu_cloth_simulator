@@ -20,6 +20,7 @@ interface ShaderDescription {
 
 class RenderPipeline {
   private device: GPUDevice;
+  private bufferFactory: BufferFactory;
   pipeline: GPURenderPipeline;
   buffersToRender: MeshGPUBuffers[];
   uniforms: UniformGPUBindGroup[];
@@ -31,6 +32,7 @@ class RenderPipeline {
     this.device = device;
     this.buffersToRender = [];
     this.uniforms = [];
+    this.bufferFactory = new BufferFactory(this.device);
 
     const shaderModule = this.device.createShaderModule({
       code: shaderDescription.code,
@@ -65,17 +67,12 @@ class RenderPipeline {
   }
 
   registerModel(model: Model) {
-    const bufferFactory = new BufferFactory(this.device);
-    const gpuBuffers = bufferFactory.createMeshBuffers(model.mesh);
+    const gpuBuffers = this.bufferFactory.createMeshBuffers(model.mesh);
     this.buffersToRender.push(gpuBuffers);
   }
 
   registerUniformBuffer(size: number, binding: number) {
-    // ~~ CREATE UNIFORMS FOR TRANSFORMATION MATRIX ~~
-    const uniformBuffer = this.device.createBuffer({
-      size,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
+    const uniformBuffer = this.bufferFactory.createUniformBuffer(size);
 
     const uniformBindGroup = this.device.createBindGroup({
       layout: this.pipeline.getBindGroupLayout(0),
