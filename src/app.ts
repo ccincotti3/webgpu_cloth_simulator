@@ -17,27 +17,24 @@ const OBJECT_URL: string = "objs/bunny.obj";
       Canvas.init("canvas-container"),
     ]);
 
+    // Create models
+    const data = objLoader.parse(objFile);
+    const model = new Model(data);
+
     // Create Pipeline
     const shader = gpuCanvas.createShader(defaultShader);
     const pipeline = gpuCanvas.createRenderPipeline(shader);
 
     // Init Camera
-    const aspectRatio = gpuCanvas.width / gpuCanvas.height;
     const perspectiveCamera = new Camera(
       (2 * Math.PI) / 5,
-      aspectRatio,
+      gpuCanvas.aspectRatio,
       0.1,
       100
     );
-    perspectiveCamera.translation = vec3.fromValues(0, 0, 3);
-
-    // Create models
-    const data = objLoader.parse(objFile);
-    const model = new Model(data);
-    model.scale = vec3.fromValues(10, 10, 1);
-    model.translation = vec3.fromValues(0, 0, 0);
 
     // Create Buffers and Bind Groups
+    const meshBuffers = gpuCanvas.createModelBuffers(model);
     const uniformBuffer = gpuCanvas.createUniformBuffer(
       16 * Float32Array.BYTES_PER_ELEMENT
     );
@@ -54,15 +51,18 @@ const OBJECT_URL: string = "objs/bunny.obj";
       ],
     });
 
-    const meshBuffers = gpuCanvas.createModelBuffers(model);
-
-    // Register Buffers with Pipeline
+    // Register Buffers
     const drawPass = new DrawPass();
     drawPass.registerModel(meshBuffers);
     drawPass.registerUniformBindGroup({
       binding: 0,
       bindGroup: uniformBindGroup,
     });
+
+    // Configure Scene
+    model.scale = vec3.fromValues(10, 10, 1);
+    model.translation = vec3.fromValues(0, 0, 0);
+    perspectiveCamera.translation = vec3.fromValues(0, 0.1, 3);
 
     // Start loop
     gpuCanvas.draw((drawHelper) => {

@@ -9,7 +9,6 @@ type PresentationSize = [number, number];
  */
 export default class GPUCanvas {
   private context: GPUCanvasContext;
-  private presentationSize: PresentationSize;
   private bufferFactory: BufferFactory;
   readonly device: GPUDevice;
   presentationFormat: GPUTextureFormat;
@@ -19,14 +18,12 @@ export default class GPUCanvas {
     context: GPUCanvasContext,
     device: GPUDevice,
     presentationFormat: GPUTextureFormat,
-    presentationSize: PresentationSize,
     width: number,
     height: number
   ) {
     this.context = context;
     this.device = device;
     this.presentationFormat = presentationFormat;
-    this.presentationSize = presentationSize;
     this.width = width;
     this.height = height;
     this.bufferFactory = new BufferFactory(this.device);
@@ -60,28 +57,34 @@ export default class GPUCanvas {
       );
     }
 
-    // ~~ CONFIGURE THE SWAP CHAIN ~~
     const devicePixelRatio = window.devicePixelRatio || 1;
-    const presentationSize: PresentationSize = [
-      canvas.clientWidth * devicePixelRatio,
-      canvas.clientHeight * devicePixelRatio,
-    ];
+
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+
+    // ~~ CONFIGURE THE SWAP CHAIN ~~
     const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
 
     context.configure({
       device,
       format: presentationFormat,
-      size: presentationSize,
     });
 
     return new GPUCanvas(
       context,
       device,
       presentationFormat,
-      presentationSize,
       canvas.width,
       canvas.height
     );
+  }
+
+  get presentationSize(): PresentationSize {
+    return [this.width, this.height];
+  }
+
+  get aspectRatio(): number {
+    return this.width / this.height;
   }
 
   createRenderPipeline(shader: Shader) {
@@ -143,11 +146,7 @@ export default class GPUCanvas {
     };
   }
 
-  draw(
-    drawCb: (
-      drawFunctions: GPURenderPassEncoder
-    ) => void /*vertices: Float32Array*/
-  ) {
+  draw(drawCb: (drawHelper: GPURenderPassEncoder) => void) {
     // ~~ Define render loop ~~
     const frame = () => {
       const commandEncoder = this.device.createCommandEncoder();
