@@ -4,7 +4,8 @@ import ObjLoader from "./ObjLoader";
 import Canvas from "./Canvas";
 import Camera from "./Camera";
 import { mat4, vec3 } from "gl-matrix";
-import { createDefaultPipeline } from "./Pipeline";
+import defaultShader from "./shaders/defaultShader";
+import { DrawPass } from "./DrawPass";
 
 const OBJECT_URL: string = "objs/bunny.obj";
 
@@ -16,14 +17,9 @@ const OBJECT_URL: string = "objs/bunny.obj";
       Canvas.init("canvas-container"),
     ]);
 
-    const renderPipeline = createDefaultPipeline(
-      gpuCanvas.device,
-      gpuCanvas.presentationFormat
-    );
-
-    // Load cloth simulator
-    const cs = new ClothSimulator();
-    // cs.addCollisionModel(bunnyModel)
+    // Create Pipeline
+    const shader = gpuCanvas.createShader(defaultShader);
+    const pipeline = gpuCanvas.createRenderPipeline(shader);
 
     // Init Camera
     const aspectRatio = gpuCanvas.width / gpuCanvas.height;
@@ -41,11 +37,32 @@ const OBJECT_URL: string = "objs/bunny.obj";
     model.scale = vec3.fromValues(10, 10, 1);
     model.translation = vec3.fromValues(0, 0, 0);
 
-    renderPipeline.registerModel(model);
-    renderPipeline.registerUniformBuffer(
-      16 * Float32Array.BYTES_PER_ELEMENT,
-      0
+    // Create Buffers and Bind Groups
+    const uniformBuffer = gpuCanvas.createUniformBuffer(
+      16 * Float32Array.BYTES_PER_ELEMENT
     );
+
+    const uniformBindGroup = gpuCanvas.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: uniformBuffer,
+          },
+        },
+      ],
+    });
+
+    const meshBuffers = gpuCanvas.createModelBuffers(model);
+
+    // Register Buffers with Pipeline
+    const drawPass = new DrawPass();
+    drawPass.registerModel(meshBuffers);
+    drawPass.registerUniformBindGroup({
+      binding: 0,
+      bindGroup: uniformBindGroup,
+    });
 
     // Start loop
     gpuCanvas.draw((drawHelper) => {
@@ -62,11 +79,11 @@ const OBJECT_URL: string = "objs/bunny.obj";
         model.modelMatrix,
         perspectiveCamera.projectionViewMatrix
       );
-      renderPipeline.updateUniform(
-        renderPipeline.uniforms[0].buffer,
+      gpuCanvas.updateUniform(
+        uniformBuffer,
         modelViewProjectionMatrix as Float32Array
       );
-      renderPipeline.draw(drawHelper);
+      drawPass.draw(pipeline, drawHelper);
     });
   } catch (e) {
     const errorContainerEl = document.getElementById("error-text");

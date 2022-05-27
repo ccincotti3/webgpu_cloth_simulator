@@ -1,3 +1,7 @@
+import BufferFactory from "./BufferFactory";
+import Model from "./Model";
+import { MeshGPUBuffers, RawShaderData, Shader } from "./types";
+
 type PresentationSize = [number, number];
 
 /**
@@ -6,6 +10,7 @@ type PresentationSize = [number, number];
 export default class GPUCanvas {
   private context: GPUCanvasContext;
   private presentationSize: PresentationSize;
+  private bufferFactory: BufferFactory;
   readonly device: GPUDevice;
   presentationFormat: GPUTextureFormat;
   width: number;
@@ -24,6 +29,7 @@ export default class GPUCanvas {
     this.presentationSize = presentationSize;
     this.width = width;
     this.height = height;
+    this.bufferFactory = new BufferFactory(this.device);
   }
   static async init(canvasId: string): Promise<GPUCanvas> {
     if (!navigator.gpu) {
@@ -76,6 +82,65 @@ export default class GPUCanvas {
       canvas.width,
       canvas.height
     );
+  }
+
+  createRenderPipeline(shader: Shader) {
+    return this.device.createRenderPipeline({
+      layout: "auto",
+      primitive: {
+        topology: "triangle-list",
+        cullMode: "back",
+      },
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: "less",
+        format: "depth24plus",
+      },
+      ...shader,
+    });
+  }
+
+  createUniformBuffer(size: number): GPUBuffer {
+    return this.bufferFactory.createUniformBuffer(size);
+  }
+
+  createBindGroup(descriptor: GPUBindGroupDescriptor): GPUBindGroup {
+    return this.device.createBindGroup(descriptor);
+  }
+
+  createModelBuffers(model: Model): MeshGPUBuffers {
+    return this.bufferFactory.createMeshBuffers(model.mesh);
+  }
+
+  updateUniform(buffer: GPUBuffer, data: Float32Array) {
+    this.device.queue.writeBuffer(
+      buffer,
+      0,
+      data.buffer,
+      data.byteOffset,
+      data.byteLength
+    );
+  }
+
+  createShader(rawShaderData: RawShaderData): Shader {
+    const shaderModule = this.device.createShaderModule({
+      code: rawShaderData.code,
+    });
+    return {
+      vertex: {
+        module: shaderModule,
+        ...rawShaderData.vertex,
+      },
+      fragment: {
+        module: shaderModule,
+        targets: [
+          {
+            format: this.presentationFormat,
+          },
+        ],
+        ...rawShaderData.fragment,
+      },
+    };
   }
 
   draw(

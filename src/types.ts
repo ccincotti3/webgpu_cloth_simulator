@@ -23,7 +23,6 @@ export interface MeshGPUBuffers {
 
 export interface UniformGPUBindGroup {
   bindGroup: GPUBindGroup;
-  buffer: GPUBuffer;
   binding: number;
 }
 
@@ -31,3 +30,14 @@ export type TransformationMatrix = mat4;
 export type ModelMatrix = mat4;
 export type ViewMatrix = mat4;
 export type ProjectionMatrix = mat4;
+
+export interface RawShaderData {
+  code: string;
+  vertex: Omit<GPUVertexState, "module">;
+  fragment: Omit<GPUFragmentState, "module" | "targets">;
+}
+
+export interface Shader {
+  vertex: GPUVertexState;
+  fragment: GPUFragmentState;
+}
