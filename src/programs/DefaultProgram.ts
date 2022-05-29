@@ -1,4 +1,4 @@
-import { mat4, vec3 } from "gl-matrix";
+import { vec3 } from "gl-matrix";
 import Model from "../Model";
 import {
   Pipeline,
@@ -11,7 +11,9 @@ import Program from "./Program";
 import defaultShaderData from "./shaders/defaultShader";
 
 export default class DefaultProgram extends Program {
-  private modelViewProjectionMatrixBuffer: GPUBuffer;
+  private modelMatrixBuffer: GPUBuffer;
+  private viewMatrixBuffer: GPUBuffer;
+  private projectionMatrixBuffer: GPUBuffer;
   private uniformBindGroup: GPUBindGroup;
   private constructor(
     gpuCanvas: GPUCanvas,
@@ -19,7 +21,13 @@ export default class DefaultProgram extends Program {
     vertexBuffers: VertexBuffers
   ) {
     super(gpuCanvas, pipeline, vertexBuffers);
-    this.modelViewProjectionMatrixBuffer = this.gl.createUniformBuffer(
+    this.modelMatrixBuffer = this.gl.createUniformBuffer(
+      16 * Float32Array.BYTES_PER_ELEMENT
+    );
+    this.viewMatrixBuffer = this.gl.createUniformBuffer(
+      16 * Float32Array.BYTES_PER_ELEMENT
+    );
+    this.projectionMatrixBuffer = this.gl.createUniformBuffer(
       16 * Float32Array.BYTES_PER_ELEMENT
     );
 
@@ -29,7 +37,19 @@ export default class DefaultProgram extends Program {
         {
           binding: 0,
           resource: {
-            buffer: this.modelViewProjectionMatrixBuffer,
+            buffer: this.modelMatrixBuffer,
+          },
+        },
+        {
+          binding: 1,
+          resource: {
+            buffer: this.viewMatrixBuffer,
+          },
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.projectionMatrixBuffer,
           },
         },
       ],
@@ -42,27 +62,27 @@ export default class DefaultProgram extends Program {
     return new DefaultProgram(gpuCanvas, pipeline, vertexBuffers);
   }
 
-  preRender(
-    perspectiveCamera: Camera,
-    model: Model
-  ): Program {
+  preRender(perspectiveCamera: Camera, model: Model): Program {
     const now = Date.now() / 1000;
     perspectiveCamera.rotationXYZ = vec3.fromValues(
       0,
       (1 + Math.cos(now)) * 3.14,
       0
     );
-    const modelViewProjectionMatrix = mat4.create();
 
-    mat4.multiply(
-      modelViewProjectionMatrix,
-      model.modelMatrix,
-      perspectiveCamera.projectionViewMatrix
+    this.gl.updateUniform(
+      this.modelMatrixBuffer,
+      model.modelMatrix as Float32Array
     );
 
     this.gl.updateUniform(
-      this.modelViewProjectionMatrixBuffer,
-      modelViewProjectionMatrix as Float32Array
+      this.viewMatrixBuffer,
+      perspectiveCamera.viewMatrix as Float32Array
+    );
+
+    this.gl.updateUniform(
+      this.projectionMatrixBuffer,
+      perspectiveCamera.projectionMatrix as Float32Array
     );
 
     return this;

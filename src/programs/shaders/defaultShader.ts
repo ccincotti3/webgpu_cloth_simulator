@@ -12,10 +12,9 @@ const code = `
         @location(0) @interpolate(flat) vNormal: vec4<f32>,
     };
 
-    struct Uniforms {
-        modelViewProjectionMatrix : mat4x4<f32>,
-    };
-    @binding(0) @group(0) var<uniform> uniforms : Uniforms;
+    @binding(0) @group(0) var<uniform> modelMatrix : mat4x4<f32>;
+    @binding(1) @group(0) var<uniform> viewMatrix : mat4x4<f32>;
+    @binding(2) @group(0) var<uniform> projectionMatrix : mat4x4<f32>;
 
     @stage(vertex)
     fn ${VERTEX_ENTRY_POINT}(
@@ -23,7 +22,7 @@ const code = `
         @location(1) normal: vec4<f32>) -> VertexOut
     {
         var output : VertexOut;
-        output.position = uniforms.modelViewProjectionMatrix * position;
+        output.position = projectionMatrix * viewMatrix * modelMatrix * position;
         output.vNormal = normal;
         return output;
     } 

@@ -19,7 +19,7 @@ const OBJECT_URL: string = "objs/bunny.obj";
     // Create models
     const data = objLoader.parse(objFile);
     const model = new Model(data);
-    model.scale = vec3.fromValues(10, 10, 1);
+    model.scale = vec3.fromValues(10, 10, 10);
     model.translation = vec3.fromValues(0, 0, 0);
 
     const perspectiveCamera = new Camera(
@@ -29,7 +29,7 @@ const OBJECT_URL: string = "objs/bunny.obj";
       100
     );
 
-    perspectiveCamera.translation = vec3.fromValues(0, 0.1, 3);
+    perspectiveCamera.translation = vec3.fromValues(0, 1.0, 3);
 
     // Create Buffers and Bind Groups
     const meshBuffers = gpuCanvas.createModelBuffers(model);

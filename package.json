@@ -2,12 +2,11 @@
   "name": "cloth_simulator",
   "version": "1.0.0",
   "description": "A simulator for cloth.",
-  "main": "index.js",
   "author": "Carmen Cincotti <ccincotti3@gmail.com>",
   "license": " GPL-3.0-only",
   "private": true,
   "scripts": {
-    "start": "parcel src/index.html && parcel watch src/index.html",
+    "start": "parcel src/index.html",
     "build": "parcel build"
   },
   "dependencies": {

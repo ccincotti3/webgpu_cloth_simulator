@@ -3,7 +3,7 @@ import { RenderPassAPI, GPUCanvas, VertexBuffers } from "../types";
 export default class Program {
   protected pipeline: GPURenderPipeline;
   protected vertexBuffers: VertexBuffers;
-  protected gl: GPUCanvas
+  protected gl: GPUCanvas;
   constructor(
     gpuCanvas: GPUCanvas,
     pipeline: GPURenderPipeline,
@@ -11,7 +11,7 @@ export default class Program {
   ) {
     this.pipeline = pipeline;
     this.vertexBuffers = vertexBuffers;
-    this.gl = gpuCanvas
+    this.gl = gpuCanvas;
   }
 
   preRender(...args: any[]): Program {
