@@ -1,4 +1,4 @@
-import { Mesh, MeshGPUBuffer, MeshGPUBuffers } from "./types";
+import { Mesh, MeshGPUBuffer, VertexBuffers } from "./types";
 
 export default class BufferFactory {
   private device: GPUDevice;
@@ -41,7 +41,7 @@ export default class BufferFactory {
     };
   }
 
-  createMeshBuffers(mesh: Mesh): MeshGPUBuffers {
+  createMeshBuffers(mesh: Mesh): VertexBuffers {
     const { indices, vertices, normals, uvs } = mesh;
 
     const vertexBuffer = this.createMeshBuffer(vertices, GPUBufferUsage.VERTEX);

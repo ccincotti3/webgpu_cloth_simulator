@@ -1,5 +1,10 @@
 import { mat4 } from "gl-matrix";
 
+import type Camera from "./Camera";
+import type GPUCanvas from "./Canvas";
+
+export { Camera, GPUCanvas };
+
 type Length = number;
 
 export interface Mesh {
@@ -14,7 +19,7 @@ export interface MeshGPUBuffer {
   length: Length;
 }
 
-export interface MeshGPUBuffers {
+export interface VertexBuffers {
   vertices: MeshGPUBuffer;
   uvs: MeshGPUBuffer;
   normals: MeshGPUBuffer;
@@ -41,3 +46,6 @@ export interface Shader {
   vertex: GPUVertexState;
   fragment: GPUFragmentState;
 }
+
+export type RenderPassAPI = GPURenderPassEncoder;
+export type Pipeline = GPURenderPipeline;

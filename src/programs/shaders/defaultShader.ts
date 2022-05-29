@@ -1,4 +1,4 @@
-import { RawShaderData } from "../types";
+import { RawShaderData } from "../../types";
 
 const FRAGMENT_ENTRY_POINT = "fragment_main";
 const VERTEX_ENTRY_POINT = "vertex_main";

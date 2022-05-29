@@ -7,7 +7,7 @@
   "license": " GPL-3.0-only",
   "private": true,
   "scripts": {
-    "start": "parcel src/index.html",
+    "start": "parcel src/index.html && parcel watch src/index.html",
     "build": "parcel build"
   },
   "dependencies": {

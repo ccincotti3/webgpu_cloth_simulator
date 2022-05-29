@@ -1,6 +1,6 @@
 import BufferFactory from "./BufferFactory";
 import Model from "./Model";
-import { MeshGPUBuffers, RawShaderData, Shader } from "./types";
+import { VertexBuffers, RawShaderData, Shader } from "./types";
 
 type PresentationSize = [number, number];
 
@@ -111,7 +111,7 @@ export default class GPUCanvas {
     return this.device.createBindGroup(descriptor);
   }
 
-  createModelBuffers(model: Model): MeshGPUBuffers {
+  createModelBuffers(model: Model): VertexBuffers {
     return this.bufferFactory.createMeshBuffers(model.mesh);
   }
 
