@@ -1,8 +1,8 @@
 import { mat4, quat, vec3 } from "gl-matrix";
-import Transformable from "./Transformable";
+import Transformation from "./Transformation";
 import { ProjectionMatrix, TransformationMatrix, ViewMatrix } from "./types";
 
-export default class Camera extends Transformable {
+export default class Camera extends Transformation {
   readonly projectionMatrix: ProjectionMatrix;
   constructor(fov: number, aspectRatio: number, near: number, far: number) {
     super();

@@ -115,10 +115,10 @@ export default class GPUCanvas {
     return this.bufferFactory.createMeshBuffers(model.mesh);
   }
 
-  updateUniform(buffer: GPUBuffer, data: Float32Array) {
+  updateUniform(buffer: GPUBuffer, data: Float32Array, offset: number) {
     this.device.queue.writeBuffer(
       buffer,
-      0,
+      offset,
       data.buffer,
       data.byteOffset,
       data.byteLength
@@ -179,7 +179,6 @@ export default class GPUCanvas {
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
       drawCb(passEncoder);
       passEncoder.end();
-
       this.device.queue.submit([commandEncoder.finish()]);
       requestAnimationFrame(frame);
     };

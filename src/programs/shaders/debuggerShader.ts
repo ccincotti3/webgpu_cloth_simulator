@@ -9,36 +9,26 @@ const STRIDE = Float32Array.BYTES_PER_ELEMENT * 3;
 const code = `
     struct VertexOut {
         @builtin(position) position : vec4<f32>,
-        @location(1) vPos: vec4<f32>,
-        @location(2) vNormal: vec4<f32>,
     };
 
-    @group(0) @binding(0) var<uniform> viewMatrix : mat4x4<f32>;
-    @group(0) @binding(1) var<uniform> projectionMatrix : mat4x4<f32>;
+    @binding(0) @group(0) var<uniform> viewMatrix : mat4x4<f32>;
+    @binding(1) @group(0) var<uniform> projectionMatrix : mat4x4<f32>;
     @group(1) @binding(0) var<uniform> modelMatrix : mat4x4<f32>;
     @group(1) @binding(1) var<uniform> normalMatrix : mat4x4<f32>;
-    @group(2) @binding(0) var<uniform> lightModelPosition : vec3<f32>;
 
     @stage(vertex)
-    fn ${VERTEX_ENTRY_POINT}(
-        @location(0) position: vec4<f32>,
-        @location(1) normal: vec4<f32>) -> VertexOut
+    fn ${VERTEX_ENTRY_POINT}(@location(0) position: vec4<f32>) -> VertexOut
     {
+        let normalMatrix = normalMatrix;
         var output : VertexOut;
         output.position = projectionMatrix * viewMatrix * modelMatrix * position;
-        output.vNormal = normalMatrix * normal;
-        output.vPos = output.position;
         return output;
     } 
 
     @stage(fragment)
     fn ${FRAGMENT_ENTRY_POINT}(fragData: VertexOut) -> @location(0) vec4<f32>
     {
-        let lightDir = normalize(lightModelPosition.xyz - fragData.vPos.xyz);
-        let ambientLightIntensity = 0.2;
-        let diffuseLightIntensity: f32 = 10. * max(dot(fragData.vNormal.xyz, lightDir), 0.0);
-        let lightFinal = diffuseLightIntensity + ambientLightIntensity;
-        return vec4(1.0) * lightFinal;
+        return vec4(0.0, 1.0, 0.0, 1.0);
     } 
 `;
 
@@ -57,17 +47,6 @@ export default {
             format: FORMAT,
             offset: 0,
             shaderLocation: 0,
-          },
-        ],
-        stepMode: STEP_MODE,
-      },
-      {
-        arrayStride: STRIDE,
-        attributes: [
-          {
-            format: FORMAT,
-            offset: 0,
-            shaderLocation: 1,
           },
         ],
         stepMode: STEP_MODE,

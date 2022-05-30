@@ -1,9 +1,9 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3, vec4 } from "gl-matrix";
 import { ModelMatrix } from "./types";
 
 type EulerOrder = "XYZ" | "YXZ" | "ZYX" | "XZY" | "YZX" | "ZXY";
 
-export default class Transformable {
+export default class Transformation {
   private _translation: mat4;
   private _rotation: mat4;
   private _scale: mat4;
@@ -16,11 +16,24 @@ export default class Transformable {
     this._modelMatrix = mat4.create();
   }
 
+  get position(): vec3 {
+    const outVector = this.translation;
+    vec3.transformMat4(outVector, outVector, this.modelMatrix);
+
+    return outVector;
+  }
+
   set translation(pos: vec3) {
-    this._translation[12] = pos[0];
-    this._translation[13] = pos[1];
-    this._translation[14] = pos[2];
+    mat4.fromTranslation(this._translation, pos);
     this.refreshModelMatrix();
+  }
+
+  get translation(): vec3 {
+    return vec3.fromValues(
+      this._translation[12],
+      this._translation[13],
+      this._translation[14]
+    );
   }
 
   set scale(scale: vec3) {
@@ -42,6 +55,19 @@ export default class Transformable {
 
   get modelMatrix(): ModelMatrix {
     return this._modelMatrix;
+  }
+
+  set modelMatrix(m: ModelMatrix) {
+    this._modelMatrix = m;
+  }
+
+  get normalMatrix(): ModelMatrix {
+    const normalMatrix = mat4.create();
+
+    mat4.invert(normalMatrix, this._modelMatrix);
+    mat4.transpose(normalMatrix, normalMatrix);
+
+    return normalMatrix;
   }
 
   private refreshModelMatrix() {

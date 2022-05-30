@@ -1,10 +1,8 @@
-import Transformable from "./Transformable";
 import { Mesh } from "./types";
 
-export default class Model extends Transformable {
+export default class Model {
   readonly mesh: Mesh;
   constructor(mesh: Mesh) {
-    super();
     this.mesh = mesh;
   }
 }
