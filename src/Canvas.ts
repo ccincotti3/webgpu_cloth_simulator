@@ -40,8 +40,8 @@ export default class GPUCanvas {
 
     const device = await adapter.requestDevice();
 
-    device.lost.then(() => {
-      throw new Error("WebGPU cannot be initialized - Device has been lost");
+    device.lost.then((e) => {
+      throw new Error(`WebGPU cannot be initialized - Device has been lost - ${e.message}`);
     });
 
     const canvas = document.getElementById(canvasId);
@@ -146,16 +146,18 @@ export default class GPUCanvas {
     };
   }
 
+
   draw(drawCb: (drawHelper: GPURenderPassEncoder) => void) {
     // ~~ Define render loop ~~
+    const depthTexture = this.device.createTexture({
+      size: this.presentationSize,
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+
     const frame = () => {
       const commandEncoder = this.device.createCommandEncoder();
 
-      const depthTexture = this.device.createTexture({
-        size: this.presentationSize,
-        format: "depth24plus",
-        usage: GPUTextureUsage.RENDER_ATTACHMENT,
-      });
 
       // ~~ CREATE RENDER PASS DESCRIPTOR ~~
       const renderPassDescriptor: GPURenderPassDescriptor = {

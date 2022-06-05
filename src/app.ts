@@ -48,7 +48,6 @@ const OBJECT_URL: string = "objs/bunny.obj";
     gpuCanvas.draw((renderPassAPI) => {
       const now = Date.now() / 10000;
       lightModel.rotationXYZ = [0, (1 + Math.cos(now)) * 3.14, 0];
-      console.log(lightModel.position);
 
       program
         .activate(renderPassAPI)
