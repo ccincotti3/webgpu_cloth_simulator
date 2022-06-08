@@ -51,7 +51,7 @@ export default class DefaultProgram extends Program {
   ): DefaultProgram {
     super.render(renderPassAPI);
     renderPassAPI.setBindGroup(2, this.lightModelBindGroup);
-    renderPassAPI.setVertexBuffer(0, vertexData.vertices.data);
+    renderPassAPI.setVertexBuffer(0, vertexData.position.data);
     renderPassAPI.setVertexBuffer(1, vertexData.normals.data);
     renderPassAPI.setIndexBuffer(vertexData.indices.data, "uint16");
     renderPassAPI.drawIndexed(vertexData.indices.length);

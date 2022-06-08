@@ -5,8 +5,10 @@ import Camera from "./Camera";
 import DefaultProgram from "./programs/DefaultProgram";
 import DebuggerProgram from "./programs/DebuggerProgram";
 import Transformation from "./Transformation";
+import { Mesh } from "./types";
 
-const OBJECT_URL: string = "objs/bunny.obj";
+const OBJECT_URL: string = "objs/cloth20x20.obj";
+// const OBJECT_URL: string = "objs/bunny.obj";
 
 (async () => {
   try {
@@ -22,6 +24,7 @@ const OBJECT_URL: string = "objs/bunny.obj";
 
     const modelTransformation = new Transformation();
     modelTransformation.scale = [10, 10, 10];
+    modelTransformation.rotationXYZ = [0, -3.14 / 2, 0];
 
     const lightModel = new Transformation();
     lightModel.translation = [0, 0.0, -1];
@@ -33,10 +36,25 @@ const OBJECT_URL: string = "objs/bunny.obj";
       100
     );
 
-    perspectiveCamera.translation = [0, 0.0, 2];
+    perspectiveCamera.translation = [0, 0.0, 3];
 
     // Create Buffers and Bind Groups
     const meshBuffers = gpuCanvas.createModelBuffers(model);
+    console.log(meshBuffers)
+
+    const debuggerMesh = {
+      position: new Float32Array([
+        -0.1, 0, 0,
+        0.1, 0, 0,
+        0, 0.1, 0,
+      ]),
+      normals: new Float32Array([]),
+      uvs: new Float32Array([]),
+      indices: new Uint16Array([])
+    } as Mesh
+
+    const debuggerModel = new Model(debuggerMesh)
+    const debuggerMeshBuffers = gpuCanvas.createModelBuffers(debuggerModel)
 
     const program = DefaultProgram.init(gpuCanvas);
     program.registerModelMatrices(1);
@@ -54,7 +72,7 @@ const OBJECT_URL: string = "objs/bunny.obj";
         .updateCameraUniforms(perspectiveCamera)
         .updateModelUniforms(
           modelTransformation.modelMatrix,
-          modelTransformation.normalMatrix,
+          modelTransformation.getNormalMatrix(perspectiveCamera.viewMatrix),
           0
         )
         .updateLightModelPositionUniform(lightModel.position)
@@ -63,8 +81,8 @@ const OBJECT_URL: string = "objs/bunny.obj";
       debuggerProgram
         .activate(renderPassAPI)
         .updateCameraUniforms(perspectiveCamera)
-        .updateModelUniforms(lightModel.modelMatrix, lightModel.normalMatrix, 0)
-        .render(renderPassAPI, meshBuffers);
+        .updateModelUniforms(lightModel.modelMatrix, lightModel.getNormalMatrix(perspectiveCamera.viewMatrix), 0)
+        .render(renderPassAPI, debuggerMeshBuffers);
     });
   } catch (e) {
     const errorContainerEl = document.getElementById("error-text");

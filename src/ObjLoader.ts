@@ -73,7 +73,7 @@ export default class ObjLoader {
     }
 
     // Use these intermediate arrays to leverage Array API (.push)
-    const finalVertices: toBeFloat32[] = [];
+    const finalPosition: toBeFloat32[] = [];
     const finalNormals: toBeFloat32[] = [];
     const finalUvs: toBeFloat32[] = [];
     const finalIndices: toBeUInt16[] = [];
@@ -98,7 +98,7 @@ export default class ObjLoader {
             .split("/")
             .map((s: string) => Number(s) - 1);
 
-          vI > -1 && finalVertices.push(...cachedVertices[vI]);
+          vI > -1 && finalPosition.push(...cachedVertices[vI]);
           uvI > -1 && finalUvs.push(...cachedUvs[uvI]);
           nI > -1 && finalNormals.push(...cachedNormals[nI]);
 
@@ -108,7 +108,7 @@ export default class ObjLoader {
     }
 
     return {
-      vertices: new Float32Array(finalVertices),
+      position: new Float32Array(finalPosition),
       uvs: new Float32Array(finalUvs),
       normals: new Float32Array(finalNormals),
       indices: new Uint16Array(finalIndices),

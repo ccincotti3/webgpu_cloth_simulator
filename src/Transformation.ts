@@ -1,5 +1,5 @@
 import { mat4, vec3, vec4 } from "gl-matrix";
-import { ModelMatrix } from "./types";
+import { ModelMatrix, ViewMatrix } from "./types";
 
 type EulerOrder = "XYZ" | "YXZ" | "ZYX" | "XZY" | "YZX" | "ZXY";
 
@@ -54,17 +54,24 @@ export default class Transformation {
   }
 
   get modelMatrix(): ModelMatrix {
-    return this._modelMatrix;
+    return mat4.clone(this._modelMatrix);
   }
 
   set modelMatrix(m: ModelMatrix) {
     this._modelMatrix = m;
   }
 
-  get normalMatrix(): ModelMatrix {
-    const normalMatrix = mat4.create();
+  getModelViewMatrix(viewMatrix: ViewMatrix): ModelMatrix {
+    const modelViewMatrix = this.modelMatrix
 
-    mat4.invert(normalMatrix, this._modelMatrix);
+    mat4.multiply(modelViewMatrix, viewMatrix, modelViewMatrix)
+    return modelViewMatrix
+  }
+
+  getNormalMatrix(viewMatrix: ViewMatrix): ModelMatrix {
+    const normalMatrix = this.getModelViewMatrix(viewMatrix);
+
+    mat4.invert(normalMatrix, normalMatrix);
     mat4.transpose(normalMatrix, normalMatrix);
 
     return normalMatrix;

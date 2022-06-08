@@ -15,9 +15,8 @@ export default class DebuggerProgram extends Program {
 
   render(renderPassAPI: RenderPassAPI, vertexData: VertexBuffers): Program {
     super.render(renderPassAPI);
-    renderPassAPI.setVertexBuffer(0, vertexData.vertices.data);
-    renderPassAPI.setIndexBuffer(vertexData.indices.data, "uint16");
-    renderPassAPI.drawIndexed(vertexData.indices.length);
+    renderPassAPI.setVertexBuffer(0, vertexData.position.data);
+    renderPassAPI.draw(3);
 
     return this;
   }

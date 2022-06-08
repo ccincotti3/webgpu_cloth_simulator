@@ -34,9 +34,10 @@ const code = `
     @stage(fragment)
     fn ${FRAGMENT_ENTRY_POINT}(fragData: VertexOut) -> @location(0) vec4<f32>
     {
-        let lightDir = normalize(lightModelPosition.xyz - fragData.vPos.xyz);
+        let lightStrength = 10.;
+        let lightDir = normalize(1.9*lightModelPosition.xyz - fragData.vPos.xyz);
         let ambientLightIntensity = 0.2;
-        let diffuseLightIntensity: f32 = 10. * max(dot(fragData.vNormal.xyz, lightDir), 0.0);
+        let diffuseLightIntensity: f32 = lightStrength * max(dot(fragData.vNormal.xyz, lightDir), 0.00);
         let lightFinal = diffuseLightIntensity + ambientLightIntensity;
         return vec4(1.0) * lightFinal;
     } 
@@ -44,6 +45,10 @@ const code = `
 
 export default {
   code,
+  primitive: {
+    topology: "triangle-list",
+    cullMode: "front",
+  },
   fragment: {
     entryPoint: FRAGMENT_ENTRY_POINT,
   },

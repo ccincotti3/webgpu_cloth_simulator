@@ -34,6 +34,10 @@ const code = `
 
 export default {
   code,
+  primitive: {
+    topology: "triangle-list",
+    cullMode: "back",
+  },
   fragment: {
     entryPoint: FRAGMENT_ENTRY_POINT,
   },

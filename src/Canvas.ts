@@ -90,10 +90,6 @@ export default class GPUCanvas {
   createRenderPipeline(shader: Shader) {
     return this.device.createRenderPipeline({
       layout: "auto",
-      primitive: {
-        topology: "triangle-list",
-        cullMode: "back",
-      },
       depthStencil: {
         depthWriteEnabled: true,
         depthCompare: "less",

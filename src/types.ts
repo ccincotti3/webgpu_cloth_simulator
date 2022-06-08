@@ -8,7 +8,7 @@ export { Camera, GPUCanvas };
 type Length = number;
 
 export interface Mesh {
-  vertices: Float32Array;
+  position: Float32Array;
   uvs: Float32Array;
   normals: Float32Array;
   indices: Uint16Array;
@@ -20,7 +20,7 @@ export interface MeshGPUBuffer {
 }
 
 export interface VertexBuffers {
-  vertices: MeshGPUBuffer;
+  position: MeshGPUBuffer;
   uvs: MeshGPUBuffer;
   normals: MeshGPUBuffer;
   indices: MeshGPUBuffer;
@@ -40,6 +40,7 @@ export type LightModelPosition = vec3;
 
 export interface RawShaderData {
   code: string;
+  primitive: GPUPrimitiveState;
   vertex: Omit<GPUVertexState, "module">;
   fragment: Omit<GPUFragmentState, "module" | "targets">;
 }
