@@ -1,5 +1,5 @@
 import Camera from "../Camera";
-import { MAT4_SIZE } from "../constants";
+import { MAT4_SIZE, VEC3_SIZE } from "../constants";
 import { GPUCanvas, ModelMatrix, NormalMatrix, RenderPassAPI } from "../types";
 
 export default class Program {
@@ -7,6 +7,7 @@ export default class Program {
   protected normalMatrixBuffer: GPUBuffer;
   protected viewMatrixBuffer: GPUBuffer;
   protected projectionMatrixBuffer: GPUBuffer;
+  protected cameraPositionBuffer: GPUBuffer;
   protected cameraUniformBindGroup: GPUBindGroup;
   protected modelBindGroups: GPUBindGroup[];
   protected pipeline: GPURenderPipeline;
@@ -21,6 +22,7 @@ export default class Program {
     this.projectionMatrixBuffer = this.gl.createUniformBuffer(MAT4_SIZE);
     this.modelMatrixBuffer = this.gl.createUniformBuffer(MAT4_SIZE);
     this.normalMatrixBuffer = this.gl.createUniformBuffer(MAT4_SIZE);
+    this.cameraPositionBuffer = this.gl.createUniformBuffer(VEC3_SIZE);
 
     this.cameraUniformBindGroup = this.gl.createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
@@ -35,6 +37,12 @@ export default class Program {
           binding: 1,
           resource: {
             buffer: this.projectionMatrixBuffer,
+          },
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.cameraPositionBuffer,
           },
         },
       ],
@@ -97,6 +105,12 @@ export default class Program {
     this.gl.updateUniform(
       this.viewMatrixBuffer,
       camera.viewMatrix as Float32Array,
+      0
+    );
+
+    this.gl.updateUniform(
+      this.cameraPositionBuffer,
+      camera.translation as Float32Array,
       0
     );
 

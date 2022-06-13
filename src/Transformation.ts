@@ -18,7 +18,7 @@ export default class Transformation {
 
   get position(): vec3 {
     const outVector = this.translation;
-    vec3.transformMat4(outVector, outVector, this.modelMatrix);
+    vec3.transformMat4(outVector, outVector, this._rotation);
 
     return outVector;
   }
@@ -70,7 +70,6 @@ export default class Transformation {
 
   getNormalMatrix(viewMatrix: ViewMatrix): ModelMatrix {
     const normalMatrix = this.getModelViewMatrix(viewMatrix);
-
     mat4.invert(normalMatrix, normalMatrix);
     mat4.transpose(normalMatrix, normalMatrix);
 

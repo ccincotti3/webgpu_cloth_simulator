@@ -15,11 +15,12 @@ const code = `
 
     @group(0) @binding(0) var<uniform> viewMatrix : mat4x4<f32>;
     @group(0) @binding(1) var<uniform> projectionMatrix : mat4x4<f32>;
+    @group(0) @binding(2) var<uniform> cameraPosition : vec3<f32>;
     @group(1) @binding(0) var<uniform> modelMatrix : mat4x4<f32>;
     @group(1) @binding(1) var<uniform> normalMatrix : mat4x4<f32>;
     @group(2) @binding(0) var<uniform> lightModelPosition : vec3<f32>;
 
-    @stage(vertex)
+    @vertex
     fn ${VERTEX_ENTRY_POINT}(
         @location(0) position: vec4<f32>,
         @location(1) normal: vec4<f32>) -> VertexOut
@@ -27,19 +28,35 @@ const code = `
         var output : VertexOut;
         output.position = projectionMatrix * viewMatrix * modelMatrix * position;
         output.vNormal = normalMatrix * normal;
-        output.vPos = output.position;
+        output.vPos = modelMatrix * position;
         return output;
     } 
 
-    @stage(fragment)
+    @fragment
     fn ${FRAGMENT_ENTRY_POINT}(fragData: VertexOut) -> @location(0) vec4<f32>
     {
-        let lightStrength = 10.;
-        let lightDir = normalize(1.9*lightModelPosition.xyz - fragData.vPos.xyz);
+        let diffuseLightStrength = 0.5;
         let ambientLightIntensity = 0.2;
-        let diffuseLightIntensity: f32 = lightStrength * max(dot(fragData.vNormal.xyz, lightDir), 0.00);
-        let lightFinal = diffuseLightIntensity + ambientLightIntensity;
-        return vec4(1.0) * lightFinal;
+        let specularStrength = 0.5;
+        let specularShininess = 32.;
+
+        let vNormal = normalize(fragData.vNormal.xyz);
+        let vPosition = fragData.vPos.xyz;
+        let vCameraPosition = cameraPosition;
+        let lightPosition = lightModelPosition.xyz;
+
+        let lightDir = normalize(lightPosition - vPosition);
+        let lightMagnitude = dot(vNormal, lightDir);
+        let diffuseLightFinal: f32 = diffuseLightStrength * max(lightMagnitude, 0);
+
+        let viewDir = normalize(vCameraPosition - vPosition);
+        let reflectDir = reflect(-lightDir, vNormal);  
+        let spec = pow(max(dot(viewDir, reflectDir), 0.0), specularShininess);
+        let specularFinal = specularStrength * spec;  
+
+        let lightFinal = specularFinal + diffuseLightFinal + ambientLightIntensity;
+        // return vec4(vNormal, 1.0) * lightFinal;
+        return vec4(1.0, 1.0, 0., 1.0) * lightFinal;
     } 
 `;
 
@@ -47,7 +64,7 @@ export default {
   code,
   primitive: {
     topology: "triangle-list",
-    cullMode: "front",
+    cullMode: "back",
   },
   fragment: {
     entryPoint: FRAGMENT_ENTRY_POINT,
