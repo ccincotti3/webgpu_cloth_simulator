@@ -108,7 +108,7 @@ export default class ObjLoader {
     }
 
     return {
-      position: new Float32Array(finalPosition),
+      positions: new Float32Array(finalPosition),
       uvs: new Float32Array(finalUvs),
       normals: new Float32Array(finalNormals),
       indices: new Uint16Array(finalIndices),

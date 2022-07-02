@@ -6,10 +6,11 @@ import DefaultProgram from "./programs/DefaultProgram";
 import DebuggerProgram from "./programs/DebuggerProgram";
 import Transformation from "./Transformation";
 import { Mesh } from "./types";
+import Cloth from "./Cloth";
 
-// const OBJECT_URL: string = "objs/cloth20x20.obj";
+const OBJECT_URL: string = "objs/cloth20x20.obj";
 // const OBJECT_URL: string = "objs/bunny.obj";
-const OBJECT_URL: string = "objs/cube.obj";
+// const OBJECT_URL: string = "objs/cube.obj";
 
 (async () => {
   try {
@@ -25,7 +26,7 @@ const OBJECT_URL: string = "objs/cube.obj";
 
     const modelTransformation = new Transformation();
     modelTransformation.scale = [1, 1, 1];
-    modelTransformation.rotationXYZ = [0, -3.14 / 4, 0];
+    // modelTransformation.rotationXYZ = [0, 3.14 / 4, 0];
 
     const lightModel = new Transformation();
     lightModel.translation = [5.0, 0.0, 0.0];
@@ -43,7 +44,7 @@ const OBJECT_URL: string = "objs/cube.obj";
     const meshBuffers = gpuCanvas.createModelBuffers(model);
 
     const debuggerMesh = {
-      position: new Float32Array([
+      positions: new Float32Array([
         -0.1, 0, 0,
         0.1, 0, 0,
         0, 0.1, 0,
@@ -56,18 +57,29 @@ const OBJECT_URL: string = "objs/cube.obj";
     const debuggerModel = new Model(debuggerMesh)
     const debuggerMeshBuffers = gpuCanvas.createModelBuffers(debuggerModel)
 
+    const cloth = new Cloth(data)
+
     const program = DefaultProgram.init(gpuCanvas);
     program.registerModelMatrices(1);
 
     const debuggerProgram = DebuggerProgram.init(gpuCanvas);
     debuggerProgram.registerModelMatrices(1);
 
+    // PHYSICS
+    const gravity = [-0.0, -0.0, 0.0]
+    const dt = 1.0 / 60.0
+
     // Start loop
     gpuCanvas.draw((renderPassAPI) => {
       const now = Date.now() / 3000;
-      // lightModel.rotationXYZ = [0, (1 - Math.cos(now)) * 3.14, 0];
+      lightModel.rotationXYZ = [0, -3.14 / 2, 0];
       // modelTransformation.rotationXYZ = [0, (1 + Math.cos(now)) * 3.14, 0];
 
+      cloth.preSolve(dt, gravity)
+      cloth.solve(dt)
+      cloth.postSolve(dt)
+
+      gpuCanvas.device.queue.writeBuffer(meshBuffers.position.data, 0, cloth.pos, 0, meshBuffers.position.length);
       program
         .activate(renderPassAPI)
         .updateCameraUniforms(perspectiveCamera)
