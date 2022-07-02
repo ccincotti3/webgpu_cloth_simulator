@@ -8,7 +8,7 @@ export { Camera, GPUCanvas };
 type Length = number;
 
 export interface Mesh {
-  position: Float32Array;
+  positions: Float32Array;
   uvs: Float32Array;
   normals: Float32Array;
   indices: Uint16Array;

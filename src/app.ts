@@ -6,10 +6,11 @@ import DefaultProgram from "./programs/DefaultProgram";
 import DebuggerProgram from "./programs/DebuggerProgram";
 import Transformation from "./Transformation";
 import { Mesh } from "./types";
+import Cloth from "./Cloth";
 
-// const OBJECT_URL: string = "objs/cloth20x20.obj";
+const OBJECT_URL: string = "objs/cloth20x20.obj";
 // const OBJECT_URL: string = "objs/bunny.obj";
-const OBJECT_URL: string = "objs/cube.obj";
+// const OBJECT_URL: string = "objs/cube.obj";
 
 (async () => {
   try {
@@ -24,7 +25,7 @@ const OBJECT_URL: string = "objs/cube.obj";
     const model = new Model(data);
 
     const modelTransformation = new Transformation();
-    modelTransformation.scale = [1, 1, 1];
+    modelTransformation.scale = [10, 10, 10];
     modelTransformation.rotationXYZ = [0, -3.14 / 4, 0];
 
     const lightModel = new Transformation();
@@ -43,7 +44,7 @@ const OBJECT_URL: string = "objs/cube.obj";
     const meshBuffers = gpuCanvas.createModelBuffers(model);
 
     const debuggerMesh = {
-      position: new Float32Array([
+      positions: new Float32Array([
         -0.1, 0, 0,
         0.1, 0, 0,
         0, 0.1, 0,
@@ -56,6 +57,8 @@ const OBJECT_URL: string = "objs/cube.obj";
     const debuggerModel = new Model(debuggerMesh)
     const debuggerMeshBuffers = gpuCanvas.createModelBuffers(debuggerModel)
 
+    const cloth = new Cloth(data)
+
     const program = DefaultProgram.init(gpuCanvas);
     program.registerModelMatrices(1);
 
@@ -65,7 +68,7 @@ const OBJECT_URL: string = "objs/cube.obj";
     // Start loop
     gpuCanvas.draw((renderPassAPI) => {
       const now = Date.now() / 3000;
-      // lightModel.rotationXYZ = [0, (1 - Math.cos(now)) * 3.14, 0];
+      lightModel.rotationXYZ = [0, (1 - Math.cos(now)) * 3.14, 0];
       // modelTransformation.rotationXYZ = [0, (1 + Math.cos(now)) * 3.14, 0];
 
       program
