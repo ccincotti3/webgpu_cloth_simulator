@@ -1,4 +1,4 @@
-import { vecAdd, vecCopy, vecDistSquared, vecLengthSquared, vecScale, vecSetCross, vecSetDiff } from "./math";
+import { vecAdd, vecCopy, vecDistSquared, vecDot, vecLengthSquared, vecScale, vecSetCross, vecSetDiff, vecSetZero } from "./math";
 import { Mesh } from "./types";
 
 export default class Cloth {
@@ -16,16 +16,20 @@ export default class Cloth {
   stretchingLengths: Float32Array
   bendingLengths: Float32Array
   grads: Float32Array
+  faces: Float32Array
+  normals: Float32Array
   stretchingCompliance: number;
   bendingCompliance: number;
   constructor(mesh: Mesh) {
     // Particles
     this.numParticles = mesh.positions.length / 3;
     this.pos = new Float32Array(mesh.positions);
+    this.normals = new Float32Array(mesh.normals);
     this.prevPos = new Float32Array(mesh.positions);
     this.restPos = new Float32Array(mesh.positions);
     this.vel = new Float32Array(3 * this.numParticles);
     this.invMass = new Float32Array(this.numParticles);
+    this.faces = new Float32Array(mesh.indices);
 
     // Stretching and bending constraints
     const neighbors = this.findTriNeighbors(mesh.indices)
@@ -41,11 +45,7 @@ export default class Cloth {
     this.bendingCompliance = 1.0;
 
     this.grads = new Float32Array(4 * 3);
-
-    console.log(neighbors)
-    console.log(edgeIds)
-    console.log(this.invMass)
-
+    console.log(this.normals.length, this.pos.length, this.numParticles)
     this.initPhysics(mesh.indices)
   }
 
@@ -171,12 +171,13 @@ export default class Cloth {
     }
 
     // Thickness of the edge to zero out(?)
-    const eps = 0.0001;
+    const eps = .0001;
 
     for (let i = 0; i < this.numParticles; i++) {
       const x = this.pos[3 * i];
       const y = this.pos[3 * i + 1];
-      if ((y > maxY - eps) && (x < minX + eps || x > maxX - eps))
+      // if ((y > maxY - eps) && (x < minX + eps || x > maxX - eps))
+      if (y > maxY - eps)
         this.invMass[i] = 0.0;
     }
   }
@@ -243,10 +244,41 @@ export default class Cloth {
 
   postSolve(dt) {
     for (var i = 0; i < this.numParticles; i++) {
+      vecSetZero(this.normals, i)
+    }
+
+    for (var i = 0; i < this.numParticles; i++) {
       if (this.invMass[i] == 0.0)
         continue;
       vecSetDiff(this.vel, i, this.pos, i, this.prevPos, i, 1.0 / dt);
+      this.updateVertexNormals(i)
     }
+
+  }
+
+  updateVertexNormals(i: number) {
+      const id0 = this.faces[3 * i];
+      const id1 = this.faces[3 * i + 1];
+      const id2 = this.faces[3 * i + 2];
+
+      const e0 = [0,0,0]
+      const e1 = [0,0,0]
+      const c = [0,0,0]
+
+      // Find Area of Triangle
+      // Calculate edge vectors from id0
+      vecSetDiff(e0, 0, this.pos, id1, this.pos, id0);
+      vecSetDiff(e1, 0, this.pos, id2, this.pos, id0);
+
+      // Area of triangle 1/2 |AB x AC|
+      vecSetCross(c, 0, e0, 0, e1, 0);
+      const magnitude = Math.sqrt(vecDot(c, 0, c, 0))
+
+      vecScale(c, 0, 1/3)
+
+      vecAdd(this.normals, id0, c, 0);
+      vecAdd(this.normals, id1, c, 0);
+      vecAdd(this.normals, id2, c, 0);
   }
 
   solveStretching(compliance, dt) {
@@ -298,5 +330,4 @@ export default class Cloth {
       vecAdd(this.pos, id1, this.grads, 0, -s * w1);
     }
   }
-
 }

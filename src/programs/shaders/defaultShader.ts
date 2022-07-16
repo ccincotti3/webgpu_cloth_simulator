@@ -25,9 +25,10 @@ const code = `
         @location(0) position: vec4<f32>,
         @location(1) normal: vec4<f32>) -> VertexOut
     {
+        var n = normalMatrix;
         var output : VertexOut;
         output.position = projectionMatrix * viewMatrix * modelMatrix * position;
-        output.vNormal = normalMatrix * normal;
+        output.vNormal = normalMatrix * abs(normal);
         output.vPos = modelMatrix * position;
         return output;
     } 
@@ -35,9 +36,9 @@ const code = `
     @fragment
     fn ${FRAGMENT_ENTRY_POINT}(fragData: VertexOut) -> @location(0) vec4<f32>
     {
-        let diffuseLightStrength = 0.5;
-        let ambientLightIntensity = 0.2;
-        let specularStrength = 0.5;
+        let diffuseLightStrength = 0.9;
+        let ambientLightIntensity = 0.0;
+        let specularStrength = 0.2;
         let specularShininess = 32.;
 
         let vNormal = normalize(fragData.vNormal.xyz);
@@ -56,7 +57,7 @@ const code = `
 
         let lightFinal = specularFinal + diffuseLightFinal + ambientLightIntensity;
         // return vec4(vNormal, 1.0) * lightFinal;
-        return vec4(1.0, 1.0, 0., 1.0) * lightFinal;
+        return vec4(0.9, .8, 0.5, 1.0) * lightFinal;
     } 
 `;
 
@@ -64,7 +65,8 @@ export default {
   code,
   primitive: {
     topology: "triangle-list",
-    cullMode: "back",
+    frontFace: 'ccw',
+    cullMode: 'none'
   },
   fragment: {
     entryPoint: FRAGMENT_ENTRY_POINT,

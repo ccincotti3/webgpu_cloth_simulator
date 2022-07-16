@@ -8,7 +8,9 @@ import Transformation from "./Transformation";
 import { Mesh } from "./types";
 import Cloth from "./Cloth";
 
-const OBJECT_URL: string = "objs/cloth20x20.obj";
+// const OBJECT_URL: string = "objs/cloth_500.obj";
+// const OBJECT_URL: string = "objs/cloth20x20.obj";
+const OBJECT_URL: string = "objs/cloth_100.obj";
 // const OBJECT_URL: string = "objs/bunny.obj";
 // const OBJECT_URL: string = "objs/cube.obj";
 
@@ -25,11 +27,12 @@ const OBJECT_URL: string = "objs/cloth20x20.obj";
     const model = new Model(data);
 
     const modelTransformation = new Transformation();
-    modelTransformation.scale = [1, 1, 1];
-    // modelTransformation.rotationXYZ = [0, 3.14 / 4, 0];
+    modelTransformation.scale = [0.5, 0.5, 0.5];
+    // modelTransformation.rotationXYZ = [0,  1, 1];
 
     const lightModel = new Transformation();
     lightModel.translation = [5.0, 0.0, 0.0];
+    lightModel.rotationXYZ = [0, -3.14 / 2, 0];
 
     const perspectiveCamera = new Camera(
       (2 * Math.PI) / 5,
@@ -66,20 +69,20 @@ const OBJECT_URL: string = "objs/cloth20x20.obj";
     debuggerProgram.registerModelMatrices(1);
 
     // PHYSICS
-    const gravity = [-0.0, -0.0, 0.0]
     const dt = 1.0 / 60.0
 
     // Start loop
     gpuCanvas.draw((renderPassAPI) => {
       const now = Date.now() / 3000;
-      lightModel.rotationXYZ = [0, -3.14 / 2, 0];
-      // modelTransformation.rotationXYZ = [0, (1 + Math.cos(now)) * 3.14, 0];
+      const gravity = [-0.5 * Math.cos(now), -1, 0.1]
+      // modelTransformation.rotationXYZ = [0, (1 + Math.cos(now)) * 3.14,  0];
 
       cloth.preSolve(dt, gravity)
       cloth.solve(dt)
       cloth.postSolve(dt)
 
       gpuCanvas.device.queue.writeBuffer(meshBuffers.position.data, 0, cloth.pos, 0, meshBuffers.position.length);
+      gpuCanvas.device.queue.writeBuffer(meshBuffers.normals.data, 0, cloth.normals, 0, meshBuffers.normals.length);
       program
         .activate(renderPassAPI)
         .updateCameraUniforms(perspectiveCamera)
