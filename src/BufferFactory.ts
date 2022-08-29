@@ -39,7 +39,10 @@ export default class BufferFactory {
   createMeshBuffers(mesh: Mesh): VertexBuffers {
     const { indices, positions, normals, uvs } = mesh;
 
-    const positionBuffer = this.createMeshBuffer(positions, GPUBufferUsage.VERTEX);
+    const positionBuffer = this.createMeshBuffer(
+      positions,
+      GPUBufferUsage.VERTEX
+    );
     const indexBuffer = this.createMeshBuffer(indices, GPUBufferUsage.INDEX);
     const normalBuffer = this.createMeshBuffer(normals, GPUBufferUsage.VERTEX);
     const uvBuffer = this.createMeshBuffer(uvs, GPUBufferUsage.VERTEX);

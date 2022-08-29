@@ -62,10 +62,10 @@ export default class Transformation {
   }
 
   getModelViewMatrix(viewMatrix: ViewMatrix): ModelMatrix {
-    const modelViewMatrix = this.modelMatrix
+    const modelViewMatrix = this.modelMatrix;
 
-    mat4.multiply(modelViewMatrix, viewMatrix, modelViewMatrix)
-    return modelViewMatrix
+    mat4.multiply(modelViewMatrix, viewMatrix, modelViewMatrix);
+    return modelViewMatrix;
   }
 
   getNormalMatrix(viewMatrix: ViewMatrix): ModelMatrix {

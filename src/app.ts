@@ -5,12 +5,11 @@ import Camera from "./Camera";
 import DefaultProgram from "./programs/DefaultProgram";
 import DebuggerProgram from "./programs/DebuggerProgram";
 import Transformation from "./Transformation";
-import { Mesh } from "./types";
 import Cloth from "./Cloth";
 
-// const OBJECT_URL: string = "objs/cloth_500.obj";
 // const OBJECT_URL: string = "objs/cloth20x20.obj";
-const OBJECT_URL: string = "objs/cloth_100.obj";
+// const OBJECT_URL: string = "objs/cloth_60_60.obj";
+const OBJECT_URL: string = "objs/cloth_40_40_l.obj";
 // const OBJECT_URL: string = "objs/bunny.obj";
 // const OBJECT_URL: string = "objs/cube.obj";
 
@@ -27,7 +26,7 @@ const OBJECT_URL: string = "objs/cloth_100.obj";
     const model = new Model(data);
 
     const modelTransformation = new Transformation();
-    modelTransformation.scale = [0.5, 0.5, 0.5];
+    modelTransformation.scale = [1.0, 1.0, 1.0];
     // modelTransformation.rotationXYZ = [0,  1, 1];
 
     const lightModel = new Transformation();
@@ -45,22 +44,7 @@ const OBJECT_URL: string = "objs/cloth_100.obj";
 
     // Create Buffers and Bind Groups
     const meshBuffers = gpuCanvas.createModelBuffers(model);
-
-    const debuggerMesh = {
-      positions: new Float32Array([
-        -0.1, 0, 0,
-        0.1, 0, 0,
-        0, 0.1, 0,
-      ]),
-      normals: new Float32Array([]),
-      uvs: new Float32Array([]),
-      indices: new Uint16Array([])
-    } as Mesh
-
-    const debuggerModel = new Model(debuggerMesh)
-    const debuggerMeshBuffers = gpuCanvas.createModelBuffers(debuggerModel)
-
-    const cloth = new Cloth(data)
+    const cloth = new Cloth(data);
 
     const program = DefaultProgram.init(gpuCanvas);
     program.registerModelMatrices(1);
@@ -69,20 +53,35 @@ const OBJECT_URL: string = "objs/cloth_100.obj";
     debuggerProgram.registerModelMatrices(1);
 
     // PHYSICS
-    const dt = 1.0 / 60.0
+    const dt = 1.0 / 60.0;
+    const steps = 15;
+    const sdt = dt / steps;
+    const gravity = new Float32Array([-3, -9.8, -4]);
 
     // Start loop
     gpuCanvas.draw((renderPassAPI) => {
-      const now = Date.now() / 3000;
-      const gravity = [-0.5 * Math.cos(now), -1, 0.1]
-      // modelTransformation.rotationXYZ = [0, (1 + Math.cos(now)) * 3.14,  0];
+      for (let i = 0; i < steps; i++) {
+        cloth.preSolve(sdt, gravity);
+        cloth.solve(sdt);
+        cloth.postSolve(sdt);
+      }
 
-      cloth.preSolve(dt, gravity)
-      cloth.solve(dt)
-      cloth.postSolve(dt)
+      cloth.updateVertexNormals();
 
-      gpuCanvas.device.queue.writeBuffer(meshBuffers.position.data, 0, cloth.pos, 0, meshBuffers.position.length);
-      gpuCanvas.device.queue.writeBuffer(meshBuffers.normals.data, 0, cloth.normals, 0, meshBuffers.normals.length);
+      gpuCanvas.device.queue.writeBuffer(
+        meshBuffers.position.data,
+        0,
+        cloth.pos,
+        0,
+        meshBuffers.position.length
+      );
+      gpuCanvas.device.queue.writeBuffer(
+        meshBuffers.normals.data,
+        0,
+        cloth.normals,
+        0,
+        meshBuffers.normals.length
+      );
       program
         .activate(renderPassAPI)
         .updateCameraUniforms(perspectiveCamera)
@@ -93,12 +92,6 @@ const OBJECT_URL: string = "objs/cloth_100.obj";
         )
         .updateLightModelPositionUniform(lightModel.position)
         .render(renderPassAPI, meshBuffers);
-
-      debuggerProgram
-        .activate(renderPassAPI)
-        .updateCameraUniforms(perspectiveCamera)
-        .updateModelUniforms(lightModel.modelMatrix, lightModel.getNormalMatrix(perspectiveCamera.viewMatrix), 0)
-        .render(renderPassAPI, debuggerMeshBuffers);
     });
   } catch (e) {
     const errorContainerEl = document.getElementById("error-text");

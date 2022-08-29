@@ -41,7 +41,9 @@ export default class GPUCanvas {
     const device = await adapter.requestDevice();
 
     device.lost.then((e) => {
-      throw new Error(`WebGPU cannot be initialized - Device has been lost - ${e.message}`);
+      throw new Error(
+        `WebGPU cannot be initialized - Device has been lost - ${e.message}`
+      );
     });
 
     const canvas = document.getElementById(canvasId);
@@ -142,38 +144,40 @@ export default class GPUCanvas {
     };
   }
 
-
   draw(drawCb: (drawHelper: GPURenderPassEncoder) => void) {
-    // ~~ Define render loop ~~
     const depthTexture = this.device.createTexture({
       size: this.presentationSize,
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT,
     });
 
-    const frame = () => {
-      const commandEncoder = this.device.createCommandEncoder();
-
-
-      // ~~ CREATE RENDER PASS DESCRIPTOR ~~
-      const renderPassDescriptor: GPURenderPassDescriptor = {
-        colorAttachments: [
-          {
-            view: this.context.getCurrentTexture().createView(),
-            clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-            loadOp: "clear",
-            storeOp: "store",
-          },
-        ],
-        depthStencilAttachment: {
-          view: depthTexture.createView(),
-
-          depthClearValue: 1.0,
-          depthLoadOp: "clear",
-          depthStoreOp: "store",
+    // ~~ CREATE RENDER PASS DESCRIPTOR ~~
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+      colorAttachments: [
+        {
+          view: this.context.getCurrentTexture().createView(),
+          clearValue: { r: 0.5294, g: 0.8039, b: 0.9725, a: 1.0 },
+          loadOp: "clear",
+          storeOp: "store",
         },
-      };
+      ],
+      depthStencilAttachment: {
+        view: depthTexture.createView(),
 
+        depthClearValue: 1.0,
+        depthLoadOp: "clear",
+        depthStoreOp: "store",
+      },
+    };
+
+    // ~~ Define render loop ~~
+    const frame = () => {
+      renderPassDescriptor.colorAttachments[0].view = this.context
+        .getCurrentTexture()
+        .createView();
+      renderPassDescriptor.depthStencilAttachment.view =
+        depthTexture.createView();
+      const commandEncoder = this.device.createCommandEncoder();
       const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
       drawCb(passEncoder);
       passEncoder.end();
