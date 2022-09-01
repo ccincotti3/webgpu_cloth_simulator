@@ -1,11 +1,13 @@
-import { initBendingConstraint } from "./constraints/BendingConstraint";
+import {
+  ConstraintAPI,
+  initBendingConstraint,
+} from "./constraints/BendingConstraint";
 import {
   vecAdd,
   vecCopy,
   vecDistSquared,
   vecDot,
   vecLengthSquared,
-  vecScale,
   vecSetCross,
   vecSetDiff,
   vecSetZero,
@@ -22,12 +24,10 @@ export default class Cloth {
   invMass: Float32Array;
 
   // Stretching and bending constraints
-  stretchingIds: Int32Array;
   bendingIds: Int32Array;
-  stretchingLengths: Float32Array;
   bendingLengths: Float32Array;
   grads: Float32Array;
-  faces: Float32Array;
+  faces: Uint16Array;
   normals: Float32Array;
   Q: Float32Array;
   stretchingCompliance: number;
@@ -41,58 +41,75 @@ export default class Cloth {
     this.restPos = new Float32Array(mesh.positions);
     this.vel = new Float32Array(3 * this.numParticles);
     this.invMass = new Float32Array(this.numParticles);
-    this.faces = new Float32Array(mesh.indices);
+    this.faces = new Uint16Array(mesh.indices);
 
     // Stretching and bending constraints
     const neighbors = this.findTriNeighbors(mesh.indices);
-    const edgeIds = this.getEdgeIds(mesh.indices, neighbors);
     const triPairIds = this.getTriPairIds(mesh.indices, neighbors);
 
-    this.stretchingIds = new Int32Array(edgeIds);
     this.bendingIds = new Int32Array(triPairIds);
-    this.stretchingLengths = new Float32Array(this.stretchingIds.length / 2);
     this.bendingLengths = new Float32Array(this.bendingIds.length / 4);
     this.Q = new Float32Array((16 * this.bendingIds.length) / 4);
 
     this.stretchingCompliance = 0.0;
     this.bendingCompliance = 100.0;
 
+    const constraintAPI = new ConstraintAPI(
+      this.pos,
+      this.faces,
+      this.invMass,
+      1 / 60
+    );
+
+    this.distanceConstraint = constraintAPI.createDistanceConstraint(0.0);
+
     this.grads = new Float32Array(4 * 3);
     this.initPhysics(mesh.indices);
   }
 
-  // Get TriPairIds for bending constraints
+  // Find four points that make up two adjacent triangles
+  //     id2
+  //    /   \
+  //   /     \
+  // id0 --- id1
+  //   \     /
+  //    \   /
+  //     id3
+
   private getTriPairIds(
-    faceIndices: Uint16Array,
+    indices: Uint16Array,
     neighborList: Float32Array
   ): number[] {
-    const numTris = faceIndices.length / 3; // Every 3 vertices is a triangle
+    const numTris = indices.length / 3; // Every 3 vertices is a triangle
     const triPairIds = [];
     for (let i = 0; i < numTris; i++) {
+      // triangles
       for (let j = 0; j < 3; j++) {
+        // edges
+
         // This is one edge of a triangle id0 ------- id1
-        const id0 = faceIndices[3 * i + j];
-        const id1 = faceIndices[3 * i + ((j + 1) % 3)];
+        const id0 = indices[3 * i + j];
+        const id1 = indices[3 * i + ((j + 1) % 3)];
 
         // Check to see if there is a neighbor triangle
         // See findTriNeighbors for details
         const n = neighborList[3 * i + j];
 
-        // Tri pair - two adjacent triangles
-        // We want all four indices
+        // Neighbor found!
         if (n >= 0) {
-          // Need to find opposite ids that are on opposite sides of shared edge
+          // Need to find opposite particle ids that are on opposite sides of shared edge
 
-          // Neighbor triangle (using n, since that's the neighbor)
-          const ni = Math.floor(n / 3); // triangle
-          const nj = n % 3; // LOCAL edge
+          // Find the last vertice in this triangle
+          // this is the vertice of the triangle not on the shared edge.
+          const id2 = indices[3 * i + ((j + 2) % 3)];
 
-          // We know that the third vertice in current triangle is one of them
-          // Get it's global edge number
-          const id2 = faceIndices[3 * i + ((j + 2) % 3)];
+          // Neighbor triangle (using n, since that's the shared edge of the neighbor triangle)
+          const ni = Math.floor(n / 3); // The neighbot triangle
+          const nj = n % 3; // LOCAL edge, of the neighbor triangle. (so either 0, 1, 2)
 
-          // Now get the other triangle pair's global edge number
-          const id3 = faceIndices[3 * ni + ((nj + 2) % 3)];
+          // Similar to above, find the non-shared vertice
+          const id3 = indices[3 * ni + ((nj + 2) % 3)];
+
           triPairIds.push(id0);
           triPairIds.push(id1);
           triPairIds.push(id2);
@@ -103,37 +120,12 @@ export default class Cloth {
     return triPairIds;
   }
 
-  // Get getEdgeIds for dsitance contraints
-  private getEdgeIds(
-    faceIndices: Uint16Array,
-    neighborList: Float32Array
-  ): number[] {
-    const edgeIds = [];
-    const numTris = faceIndices.length / 3;
-    for (let i = 0; i < numTris; i++) {
-      for (let j = 0; j < 3; j++) {
-        // This is one edge of a triangle id0 ------- id1
-        const id0 = faceIndices[3 * i + j];
-        const id1 = faceIndices[3 * i + ((j + 1) % 3)];
-
-        // add each edge only once
-        const n = neighborList[3 * i + j];
-        if (n < 0 || id0 < id1) {
-          edgeIds.push(id0);
-          edgeIds.push(id1);
-        }
-      }
-    }
-    return edgeIds;
-  }
-
   private initPhysics(faceIndices: Uint16Array) {
     this.invMass.fill(0.0);
 
     const numTris = faceIndices.length / 3;
     const e0 = [0.0, 0.0, 0.0]; // edge 0 vector
     const e1 = [0.0, 0.0, 0.0]; // edge 1 vector
-
     const c = [0.0, 0.0, 0.0]; // cross vector of e0 x e1
 
     for (let i = 0; i < numTris; i++) {
@@ -159,14 +151,6 @@ export default class Cloth {
       this.invMass[id2] += pInvMass;
     }
 
-    // Calculate and initialize rest lengths of distance constraints
-    for (let i = 0; i < this.stretchingLengths.length; i++) {
-      const id0 = this.stretchingIds[2 * i];
-      const id1 = this.stretchingIds[2 * i + 1];
-      this.stretchingLengths[i] = Math.sqrt(
-        vecDistSquared(this.pos, id0, this.pos, id1)
-      );
-    }
 
     // Calculate and initialize rest lengths of bending constraints
     for (let i = 0; i < this.bendingLengths.length; i++) {
@@ -230,7 +214,6 @@ export default class Cloth {
   }
 
   private findTriNeighbors(indices: Uint16Array): Float32Array {
-    // create common edges
     const edges = [];
     const numTris = indices.length / 3;
 
@@ -239,28 +222,29 @@ export default class Cloth {
         const id0 = indices[3 * i + j];
         const id1 = indices[3 * i + ((j + 1) % 3)];
         edges.push({
-          id0: Math.min(id0, id1),
-          id1: Math.max(id0, id1),
-          edgeNr: 3 * i + j,
+          id0: Math.min(id0, id1), // particle 1
+          id1: Math.max(id0, id1), // particle 2
+          edgeNr: 3 * i + j, // global edge number
         });
       }
     }
 
     // sort so common edges are next to each other
-
     edges.sort((a, b) =>
       a.id0 < b.id0 || (a.id0 == b.id0 && a.id1 < b.id1) ? -1 : 1
     );
 
-    // find matchign edges
-
+    // find matching edges
     const neighbors = new Float32Array(3 * numTris);
-    neighbors.fill(-1); // open edge
+    neighbors.fill(-1); // -1 means open edge, as in no neighbors
 
     let i = 0;
     while (i < edges.length) {
       const e0 = edges[i];
       const e1 = edges[i + 1];
+
+      // If the particles share the same edge, update the neighbors list
+      // with their neighbors corresponding global edge number
       if (e0.id0 === e1.id0 && e0.id1 === e1.id1) {
         neighbors[e0.edgeNr] = e1.edgeNr;
         neighbors[e1.edgeNr] = e0.edgeNr;
@@ -286,9 +270,9 @@ export default class Cloth {
   }
 
   solve(dt: number) {
-    this.solveStretching(this.stretchingCompliance, dt);
+    this.distanceConstraint.solve();
     // this.solveBendingTwo(this.bendingCompliance, dt);
-    this.solveBending(this.bendingCompliance, dt);
+    // this.solveBending(this.bendingCompliance, dt);
   }
 
   postSolve(dt: number) {
@@ -325,49 +309,43 @@ export default class Cloth {
     }
   }
 
-  solveStretching(compliance, dt) {
-    const alpha = compliance / dt / dt;
+  // Solve bending constraint (which is really just a distance constraint)
+  // between two unshared vertices in configuration of two adjacent triangles.
+  // So in this diagram, it would be vertices id2 and id3.
+  //     id2
+  //    /   \
+  //   /     \
+  // id0 --- id1
+  //   \     /
+  //    \   /
+  //     id3
 
-    for (let i = 0; i < this.stretchingLengths.length; i++) {
-      const id0 = this.stretchingIds[2 * i];
-      const id1 = this.stretchingIds[2 * i + 1];
-      const w0 = this.invMass[id0];
-      const w1 = this.invMass[id1];
-      const w = w0 + w1;
-      if (w == 0.0) continue;
-
-      vecSetDiff(this.grads, 0, this.pos, id0, this.pos, id1);
-      const len = Math.sqrt(vecLengthSquared(this.grads, 0));
-      if (len == 0.0) continue;
-      const restLen = this.stretchingLengths[i];
-      const C = len - restLen;
-      const normalizingFactor = 1.0 / len;
-      const s = (-C / (w + alpha)) * normalizingFactor;
-      vecAdd(this.pos, id0, this.grads, 0, s * w0);
-      vecAdd(this.pos, id1, this.grads, 0, -s * w1);
-    }
-  }
-
-  solveBending(compliance, dt) {
+  solveBending(compliance: number, dt: number) {
     const alpha = compliance / dt / dt;
 
     for (let i = 0; i < this.bendingLengths.length; i++) {
-      const id0 = this.bendingIds[4 * i + 2];
-      const id1 = this.bendingIds[4 * i + 3];
-      const w0 = this.invMass[id0];
-      const w1 = this.invMass[id1];
+      const id2 = this.bendingIds[4 * i + 2];
+      const id3 = this.bendingIds[4 * i + 3];
+
+      const w0 = this.invMass[id2];
+      const w1 = this.invMass[id3];
+
       const w = w0 + w1;
       if (w == 0.0) continue;
 
-      vecSetDiff(this.grads, 0, this.pos, id0, this.pos, id1);
+      vecSetDiff(this.grads, 0, this.pos, id2, this.pos, id3);
       const len = Math.sqrt(vecLengthSquared(this.grads, 0));
+
       if (len == 0.0) continue;
+
       const restLen = this.bendingLengths[i];
       const C = len - restLen;
+
       const normalizingFactor = 1.0 / len;
       const s = (-C / (w + alpha)) * normalizingFactor;
-      vecAdd(this.pos, id0, this.grads, 0, s * w0);
-      vecAdd(this.pos, id1, this.grads, 0, -s * w1);
+
+      vecAdd(this.pos, id2, this.grads, 0, s * w0);
+      vecAdd(this.pos, id3, this.grads, 0, -s * w1);
     }
   }
 
