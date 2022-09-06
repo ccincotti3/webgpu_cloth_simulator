@@ -1,7 +1,12 @@
-// ----- math on vector arrays -------------------------------------------------------------
+/**
+ * Math utility classes for DataArrays
+ */
 
 export type DataArray = Float32Array | Int32Array | number[];
 
+/**
+ * Zero out 3-element vector within a DataArray
+ */
 export function vecSetZero(a: DataArray | Array<number>, anr: number) {
   anr *= 3;
   a[anr++] = 0.0;
@@ -9,6 +14,9 @@ export function vecSetZero(a: DataArray | Array<number>, anr: number) {
   a[anr] = 0.0;
 }
 
+/**
+ * Scale a 3-element vector within a DataArray
+ */
 export function vecScale(a: DataArray, anr: number, scale = 1.0) {
   anr *= 3;
   a[anr++] *= scale;
@@ -16,6 +24,9 @@ export function vecScale(a: DataArray, anr: number, scale = 1.0) {
   a[anr] *= scale;
 }
 
+/**
+ * Copy a 3-element vector within a DataArray
+ */
 export function vecCopy(a: DataArray, anr: number, b: DataArray, bnr: number) {
   anr *= 3;
   bnr *= 3;
@@ -24,6 +35,9 @@ export function vecCopy(a: DataArray, anr: number, b: DataArray, bnr: number) {
   a[anr] = b[bnr];
 }
 
+/**
+ * Add two 3-element vectors and mutate the first vector argument
+ */
 export function vecAdd(
   a: DataArray,
   anr: number,
@@ -38,12 +52,15 @@ export function vecAdd(
   a[anr] += b[bnr] * scale;
 }
 
+/**
+ * Subtract two 3-element vectors
+ */
 export function vecSetDiff(
-  dst: DataArray | Float32Array,
+  dst: DataArray,
   dnr: number,
-  a: Float32Array,
+  a: DataArray,
   anr: number,
-  b: Float32Array,
+  b: DataArray,
   bnr: number,
   scale = 1.0
 ) {
@@ -55,6 +72,9 @@ export function vecSetDiff(
   dst[dnr] = (a[anr] - b[bnr]) * scale;
 }
 
+/**
+ * Find the length of a 3-element vector within a DataArray
+ */
 export function vecLengthSquared(a: DataArray, anr: number): number {
   anr *= 3;
   let a0 = a[anr],
@@ -63,10 +83,13 @@ export function vecLengthSquared(a: DataArray, anr: number): number {
   return a0 * a0 + a1 * a1 + a2 * a2;
 }
 
+/**
+ * Find the length of a 3-element vector within a DataArray
+ */
 export function vecDistSquared(
-  a: Float32Array,
+  a: DataArray,
   anr: number,
-  b: Float32Array,
+  b: DataArray,
   bnr: number
 ) {
   anr *= 3;
@@ -77,12 +100,18 @@ export function vecDistSquared(
   return a0 * a0 + a1 * a1 + a2 * a2;
 }
 
+/**
+ * Find the dot product of two 3-element vectors
+ */
 export function vecDot(a: DataArray, anr: number, b: DataArray, bnr: number) {
   anr *= 3;
   bnr *= 3;
   return a[anr] * b[bnr] + a[anr + 1] * b[bnr + 1] + a[anr + 2] * b[bnr + 2];
 }
 
+/**
+ * Find the cross product of two 3-element vectors
+ */
 export function vecSetCross(
   a: DataArray,
   anr: number,
@@ -99,17 +128,26 @@ export function vecSetCross(
   a[anr] = b[bnr + 0] * c[cnr + 1] - b[bnr + 1] * c[cnr + 0];
 }
 
-export const vecNorm = (a: DataArray) => {
-  return Math.sqrt(a.reduce((prev, curr) => prev + curr ** 2, 0));
+/**
+ * Find the L2 norm of two vectors
+ */
+export const vecNorm = (a: DataArray): number => {
+  return Math.sqrt(
+    (a as any[]).reduce((prev: number, curr: number) => prev + curr ** 2, 0)
+  );
 };
 
-export function vecScalarWiseMultiply(a, anr, b, bnr) {
-  anr *= 3;
-  bnr *= 3;
-  const out = [];
-  out[0] = a[anr++] * b[bnr++];
-  out[1] = a[anr++] * b[bnr++];
-  out[2] = a[anr] * b[bnr];
+/**
+ * Multiply a 4d column vector by its transpose
+ */
+export function multiply4dColumnVectorByTranspose(a: DataArray): number[][] {
+  const out: number[][] = [[], [], [], []];
+
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      out[i][j] = a[i] * a[j];
+    }
+  }
 
   return out;
 }

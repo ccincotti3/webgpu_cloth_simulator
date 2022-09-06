@@ -1,6 +1,9 @@
 import { Mesh, MeshGPUBuffer, VertexBuffers } from "./types";
 
-export default class BufferFactory {
+/**
+ * Utility class to create GPU buffers
+ */
+export default class GPUBufferFactory {
   private device: GPUDevice;
   constructor(device: GPUDevice) {
     this.device = device;

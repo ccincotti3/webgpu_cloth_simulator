@@ -1,7 +1,7 @@
-import { mat4, vec3, vec4 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 
-import type Camera from "./Camera";
-import type GPUCanvas from "./Canvas";
+import type Camera from "./PerspectiveCamera";
+import type GPUCanvas from "./WebGPUCanvas";
 
 export { Camera, GPUCanvas };
 

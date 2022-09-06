@@ -1,5 +1,5 @@
-import Camera from "../Camera";
-import { MAT4_SIZE, VEC3_SIZE } from "../constants";
+import Camera from "../PerspectiveCamera";
+import { MAT4_SIZE, VEC3_SIZE } from "./constants";
 import { GPUCanvas, ModelMatrix, NormalMatrix, RenderPassAPI } from "../types";
 
 export default class Program {

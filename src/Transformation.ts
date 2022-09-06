@@ -1,8 +1,10 @@
-import { mat4, vec3, vec4 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import { ModelMatrix, ViewMatrix } from "./types";
 
-type EulerOrder = "XYZ" | "YXZ" | "ZYX" | "XZY" | "YZX" | "ZXY";
-
+/**
+ * Transformation class that provides helper functions to
+ * update a model's position, scale, and rotation
+ */
 export default class Transformation {
   private _translation: mat4;
   private _rotation: mat4;

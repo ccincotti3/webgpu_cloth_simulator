@@ -1,15 +1,14 @@
-import BufferFactory from "./BufferFactory";
-import Model from "./Model";
-import { VertexBuffers, RawShaderData, Shader } from "./types";
+import GPUBufferFactory from "./GPUBufferFactory";
+import { VertexBuffers, RawShaderData, Shader, Mesh } from "./types";
 
 type PresentationSize = [number, number];
 
 /**
- * Canvas class that maintains all WebGPU code.
+ * A WebGPU Canvas class that provides helpers to the underlying WebGPU API.
  */
-export default class GPUCanvas {
+export default class WebGPUCanvas {
   private context: GPUCanvasContext;
-  private bufferFactory: BufferFactory;
+  private bufferFactory: GPUBufferFactory;
   readonly device: GPUDevice;
   presentationFormat: GPUTextureFormat;
   width: number;
@@ -26,9 +25,9 @@ export default class GPUCanvas {
     this.presentationFormat = presentationFormat;
     this.width = width;
     this.height = height;
-    this.bufferFactory = new BufferFactory(this.device);
+    this.bufferFactory = new GPUBufferFactory(this.device);
   }
-  static async init(canvasId: string): Promise<GPUCanvas> {
+  static async init(canvasId: string): Promise<WebGPUCanvas> {
     if (!navigator.gpu) {
       throw new Error("WebGPU cannot be initialized - navigator.gpu not found");
     }
@@ -72,7 +71,7 @@ export default class GPUCanvas {
       format: presentationFormat,
     });
 
-    return new GPUCanvas(
+    return new WebGPUCanvas(
       context,
       device,
       presentationFormat,
@@ -109,8 +108,8 @@ export default class GPUCanvas {
     return this.device.createBindGroup(descriptor);
   }
 
-  createModelBuffers(model: Model): VertexBuffers {
-    return this.bufferFactory.createMeshBuffers(model.mesh);
+  createMeshBuffers(mesh: Mesh): VertexBuffers {
+    return this.bufferFactory.createMeshBuffers(mesh);
   }
 
   updateUniform(buffer: GPUBuffer, data: Float32Array, offset: number) {
@@ -163,7 +162,6 @@ export default class GPUCanvas {
       ],
       depthStencilAttachment: {
         view: depthTexture.createView(),
-
         depthClearValue: 1.0,
         depthLoadOp: "clear",
         depthStoreOp: "store",

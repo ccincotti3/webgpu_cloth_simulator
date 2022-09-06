@@ -1,34 +1,34 @@
-import Model from "./Model";
 import ObjLoader from "./ObjLoader";
-import Canvas from "./Canvas";
-import Camera from "./Camera";
+import WebGPUCanvas from "./WebGPUCanvas";
+import Camera from "./PerspectiveCamera";
 import DefaultProgram from "./programs/DefaultProgram";
-import DebuggerProgram from "./programs/DebuggerProgram";
 import Transformation from "./Transformation";
 import Cloth from "./Cloth";
 
-// const OBJECT_URL: string = "objs/cloth20x20.obj";
-// const OBJECT_URL: string = "objs/cloth_60_60.obj";
-const OBJECT_URL: string = "objs/cloth_40_40_l.obj";
-// const OBJECT_URL: string = "objs/bunny.obj";
-// const OBJECT_URL: string = "objs/cube.obj";
+const OBJECT_URL: string = "cloth_40_40_l.obj";
 
 (async () => {
   try {
     const objLoader = new ObjLoader();
     const [objFile, gpuCanvas] = await Promise.all([
       objLoader.load(OBJECT_URL),
-      Canvas.init("canvas-container"),
+      WebGPUCanvas.init("canvas-container"),
     ]);
 
-    // Create model data
-    const data = objLoader.parse(objFile);
-    const model = new Model(data);
+    // Create mesh data
+    const mesh = objLoader.parse(objFile);
 
     const modelTransformation = new Transformation();
     modelTransformation.scale = [1.0, 1.0, 1.0];
-    // modelTransformation.rotationXYZ = [0,  1, 1];
 
+    // Create Buffers and Bind Groups
+    const meshBuffers = gpuCanvas.createMeshBuffers(mesh);
+
+    // Initialize WebGPU program
+    const program = DefaultProgram.init(gpuCanvas);
+    program.registerModelMatrices(1);
+
+    // Initalize Scene objects
     const lightModel = new Transformation();
     lightModel.translation = [5.0, 0.0, 0.0];
     lightModel.rotationXYZ = [0, -3.14 / 2, 0];
@@ -42,23 +42,20 @@ const OBJECT_URL: string = "objs/cloth_40_40_l.obj";
 
     perspectiveCamera.translation = [0, 0.0, 3.0];
 
-    // Create Buffers and Bind Groups
-    const meshBuffers = gpuCanvas.createModelBuffers(model);
-    const cloth = new Cloth(data);
+    // Create Physics Object
+    const cloth = new Cloth(mesh);
 
-    const program = DefaultProgram.init(gpuCanvas);
-    program.registerModelMatrices(1);
-
-    const debuggerProgram = DebuggerProgram.init(gpuCanvas);
-    debuggerProgram.registerModelMatrices(1);
-
-    // PHYSICS
+    // Initialize physics parameters
     const dt = 1.0 / 60.0;
     const steps = 15;
     const sdt = dt / steps;
     const gravity = new Float32Array([-3, -9.8, -4]);
 
-    // Start loop
+    cloth.registerDistanceConstraint(0);
+    cloth.registerPerformantBendingConstraint(1.0);
+    // cloth.registerIsometricBendingConstraint(10.0)
+
+    // Start animation loop
     gpuCanvas.draw((renderPassAPI) => {
       for (let i = 0; i < steps; i++) {
         cloth.preSolve(sdt, gravity);
@@ -71,7 +68,7 @@ const OBJECT_URL: string = "objs/cloth_40_40_l.obj";
       gpuCanvas.device.queue.writeBuffer(
         meshBuffers.position.data,
         0,
-        cloth.pos,
+        cloth.positions,
         0,
         meshBuffers.position.length
       );

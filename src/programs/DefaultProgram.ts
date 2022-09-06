@@ -1,4 +1,4 @@
-import { VEC3_SIZE } from "../constants";
+import { VEC3_SIZE } from "./constants";
 import {
   Pipeline,
   RenderPassAPI,
