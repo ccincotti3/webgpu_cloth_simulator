@@ -14,7 +14,7 @@ As well as code snippets from:
 
 The following steps describe how to run this simulation locally.
 
-**Note** - This has only been tested on Windows (specifically WSL2). 
+**Note** - This has only been tested on Windows (specifically with WSL2). 
 
 ### Accessing the WebGPU API
 
@@ -33,11 +33,11 @@ yarn start
 
 ## Current implementation
 
-- [x] [XPBD Simulation Loop]()
-- [x] [Small Steps]()
-- [x] [Constraints - Distance]()
-- [x] [Constraints - Fast Performant Bending]()
-- [x] [Constraints - Isometric Bending]()
+- [x] [XPBD Simulation Loop](https://www.carmencincotti.com/2022-08-08/xpbd-extended-position-based-dynamics/)
+- [x] [Small Steps](https://www.carmencincotti.com/2022-08-08/xpbd-extended-position-based-dynamics/)
+- [x] [Constraints - Distance](https://www.carmencincotti.com/2022-08-22/the-distance-constraint-of-xpbd/)
+- [x] [Constraints - Fast Performant Bending](https://www.carmencincotti.com/2022-09-05/the-most-performant-bending-constraint-of-xpbd/)
+- [x] [Constraints - Isometric Bending](https://www.carmencincotti.com/2022-08-29/the-isometric-bending-constraint-of-xpbd/)
 - [ ] Constraints - Angular Bending
 - [ ] Constraints - Collisions (Self)
 - [ ] Constraints - Collisions (External)
