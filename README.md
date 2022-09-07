@@ -2,6 +2,8 @@
 
 This is a WebGPU Cloth Simulator that uses XPBD (extended position based dynamics) with small step sizes.
 
+![Cloth 09_06_2022](https://user-images.githubusercontent.com/24990748/188770782-ee621e1c-bb6d-4b1a-99e6-c37dd77bd287.gif)
+
 This relies heavily on the following papers:
 - [XPBD: Position-Based Simulation of Compliant Constrained Dynamics - Macklin et. al - NVIDIA](https://matthias-research.github.io/pages/publications/XPBD.pdf)
 - [Small Steps in Physics Simulation, Macklin et. al - NVIDIA](https://matthias-research.github.io/pages/publications/smallsteps.pdf)
@@ -43,4 +45,3 @@ yarn start
 - [ ] Constraints - Collisions (External)
 - [ ] Damping
 
-![Cloth 09_06_2022](https://user-images.githubusercontent.com/24990748/188770782-ee621e1c-bb6d-4b1a-99e6-c37dd77bd287.gif)
