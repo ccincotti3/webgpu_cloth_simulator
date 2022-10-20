@@ -1,8 +1,11 @@
-import { Constraint } from "./Constraints";
+import ClothSelfCollision, { Collision } from "./Collison";
+import { Constraint, ConstraintFactory } from "./Constraint";
+import { Hash } from "./Hash";
 import {
   vecAdd,
   vecCopy,
   vecLengthSquared,
+  vecScale,
   vecSetCross,
   vecSetDiff,
   vecSetZero,
@@ -22,6 +25,8 @@ export default abstract class PhysicsObject {
   indices: Uint16Array;
   neighbors: Float32Array;
   constraints: Constraint[];
+  constraintFactory: ConstraintFactory;
+  collisions: Collision[];
 
   constructor(mesh: Mesh) {
     this.numParticles = mesh.positions.length / 3;
@@ -32,13 +37,35 @@ export default abstract class PhysicsObject {
     this.invMass = new Float32Array(this.numParticles);
     this.indices = new Uint16Array(mesh.indices);
     this.constraints = [];
+    this.collisions = [];
+
     this.invMass = this.initInvMass();
     this.neighbors = this.findTriNeighbors();
+
+    this.constraintFactory = new ConstraintFactory(
+      this.positions,
+      this.invMass,
+      this.indices,
+      this.neighbors
+    );
   }
 
   solve(dt: number) {
+    // for (let i = 0; i < this.numParticles; i++) {
+    //   // Floor collision ( we currently don't have a need for it)
+    //   let y = this.positions[3 * i + 1];
+    //   const height = -1.3
+    //   if (y < height) {
+    //     vecCopy(this.positions, i, this.prevPositions, i);
+    //     this.positions[3 * i + 1] = height;
+    //   }
+    // }
     for (const constraint of this.constraints) {
       constraint.solve(dt);
+    }
+
+    for (const collision of this.collisions) {
+      collision.solve(dt)
     }
   }
 
@@ -46,15 +73,14 @@ export default abstract class PhysicsObject {
     for (let i = 0; i < this.numParticles; i++) {
       if (this.invMass[i] == 0.0) continue;
       vecAdd(this.vels, i, gravity, 0, dt);
+      const v = Math.sqrt(vecLengthSquared(this.vels,i));
+      const maxV = 0.2 * (0.01 / dt);
+      if (v > maxV) {
+        vecScale(this.vels,i, maxV / v);
+      }
       vecCopy(this.prevPositions, i, this.positions, i);
       vecAdd(this.positions, i, this.vels, i, dt);
 
-      // Floor collision ( we currently don't have a need for it)
-      // let y = this.pos[3 * i + 1];
-      // if (y < -0.5) {
-      //   vecCopy(this.pos, i, this.prevPos, i);
-      //   this.pos[3 * i + 1] = -0.5;
-      // }
     }
   }
   postSolve(dt: number) {
@@ -170,5 +196,66 @@ export default abstract class PhysicsObject {
     }
 
     return neighbors;
+  }
+}
+
+export class ClothPhysicsObject extends PhysicsObject {
+  thickness: number
+  hash: Hash
+  constructor(mesh: Mesh, thickness: number) {
+    super(mesh);
+    this.thickness = thickness
+
+    const spacing = thickness
+    this.hash = new Hash(spacing, this.numParticles);
+  }
+
+  preIntegration(dt: number) {
+    this.hash.create(this.positions)
+    this.hash.queryAll(this.positions, (1/60) * 0.2 * this.thickness / dt )
+  }
+  /**
+   * Adds a DistanceConstraint to the Cloth physics object
+   * @param compliance
+   */
+  public registerDistanceConstraint(compliance: number) {
+    this.constraints.push(
+      this.constraintFactory.createDistanceConstraint(compliance)
+    );
+  }
+
+  /**
+   * Adds a PerformantBendingConstraint to the Cloth physics object
+   * @param compliance
+   */
+  public registerPerformantBendingConstraint(compliance: number) {
+    this.constraints.push(
+      this.constraintFactory.createPerformantBendingConstraint(compliance)
+    );
+  }
+
+  /**
+   * Adds an IsometricBendingConstraint to the Cloth physics object
+   * @param compliance
+   */
+  public registerIsometricBendingConstraint(compliance: number) {
+    this.constraints.push(
+      this.constraintFactory.createIsometricBendingConstraint(compliance)
+    );
+  }
+
+  /**
+   * Adds a Self Collision constraint to the Cloth physics object
+   */
+  public registerSelfCollision() {
+    this.collisions.push(
+      new ClothSelfCollision(
+        this.positions,
+        this.prevPositions,
+        this.invMass,
+        this.thickness,
+        this.hash
+      )
+    );
   }
 }

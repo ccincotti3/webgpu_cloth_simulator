@@ -1,9 +1,4 @@
-import {
-  DistanceConstraint,
-  IsometricBendingConstraint,
-  PerformantBendingConstraint,
-} from "./Constraints";
-import PhysicsObject from "./PhysicsObject";
+import { ClothPhysicsObject } from "./PhysicsObject";
 import { Mesh } from "./types";
 
 /**
@@ -12,58 +7,10 @@ import { Mesh } from "./types";
  *
  * It is the user's responsibility to register constraints within the app.
  */
-export default class Cloth extends PhysicsObject {
-  constructor(mesh: Mesh) {
-    super(mesh);
+export default class Cloth extends ClothPhysicsObject {
+  constructor(mesh: Mesh, thickness: number) {
+    super(mesh, thickness);
     this.init();
-  }
-
-  /**
-   * Adds a DistanceConstraint to the Cloth physics object
-   * @param compliance
-   */
-  public registerDistanceConstraint(compliance: number) {
-    this.constraints.push(
-      new DistanceConstraint(
-        this.positions,
-        this.invMass,
-        this.indices,
-        this.neighbors,
-        compliance
-      )
-    );
-  }
-
-  /**
-   * Adds a PerformantBendingConstraint to the Cloth physics object
-   * @param compliance
-   */
-  public registerPerformantBendingConstraint(compliance: number) {
-    this.constraints.push(
-      new PerformantBendingConstraint(
-        this.positions,
-        this.invMass,
-        this.indices,
-        this.neighbors,
-        compliance
-      )
-    );
-  }
-
-  /**
-   * Adds an IsometricBendingConstraint to the Cloth physics object
-   * @param compliance
-   */
-  public registerIsometricBendingConstraint(compliance: number) {
-    this.constraints.push(
-      new IsometricBendingConstraint(
-        this.positions,
-        this.invMass,
-        this.indices,
-        this.neighbors,
-        compliance
-      )
-    );
   }
 
   private init() {

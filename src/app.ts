@@ -43,20 +43,25 @@ const OBJECT_URL: string = "cloth_40_40_l.obj";
     perspectiveCamera.translation = [0, 0.0, 3.0];
 
     // Create Physics Object
-    const cloth = new Cloth(mesh);
+
+    // thickness and spacing in hash table needed adjusting.
+    const thickness = .05
+    const cloth = new Cloth(mesh, thickness);
 
     // Initialize physics parameters
     const dt = 1.0 / 60.0;
-    const steps = 15;
+    const steps = 10;
     const sdt = dt / steps;
-    const gravity = new Float32Array([-3, -9.8, -4]);
+    const gravity = new Float32Array([-10, -9.8, -2]);
 
-    cloth.registerDistanceConstraint(0);
+    cloth.registerDistanceConstraint(0.0);
     cloth.registerPerformantBendingConstraint(1.0);
+    cloth.registerSelfCollision();
     // cloth.registerIsometricBendingConstraint(10.0)
 
     // Start animation loop
     gpuCanvas.draw((renderPassAPI) => {
+      cloth.preIntegration(sdt)
       for (let i = 0; i < steps; i++) {
         cloth.preSolve(sdt, gravity);
         cloth.solve(sdt);
