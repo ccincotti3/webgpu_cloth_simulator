@@ -5,7 +5,10 @@ import DefaultProgram from "./programs/DefaultProgram";
 import Transformation from "./Transformation";
 import Cloth from "./Cloth";
 
-const OBJECT_URL: string = "cloth_40_40_l.obj";
+// For the simulation to work with collisions,
+// it is wise to use equal spacing between all the particles.
+// This is possible to do in Blender even if the cloth as a whole is a rectangle.
+const OBJECT_URL: string = "cloth_30_45_l.obj";
 
 (async () => {
   try {
@@ -40,19 +43,20 @@ const OBJECT_URL: string = "cloth_40_40_l.obj";
       100
     );
 
-    perspectiveCamera.translation = [0, 0.0, 3.0];
+    perspectiveCamera.translation = [0, 0.0, 1.3];
 
     // Create Physics Object
 
     // thickness and spacing in hash table needed adjusting.
-    const thickness = .05
+    const thickness = 0.048;
     const cloth = new Cloth(mesh, thickness);
 
     // Initialize physics parameters
     const dt = 1.0 / 60.0;
     const steps = 10;
     const sdt = dt / steps;
-    const gravity = new Float32Array([-10, -9.8, -2]);
+    // const gravity = new Float32Array([-13, -3.8, 3]);
+    const gravity = new Float32Array([-0.1, -9.8, 2.5]);
 
     cloth.registerDistanceConstraint(0.0);
     cloth.registerPerformantBendingConstraint(1.0);
@@ -61,7 +65,7 @@ const OBJECT_URL: string = "cloth_40_40_l.obj";
 
     // Start animation loop
     gpuCanvas.draw((renderPassAPI) => {
-      cloth.preIntegration(sdt)
+      cloth.preIntegration(sdt);
       for (let i = 0; i < steps; i++) {
         cloth.preSolve(sdt, gravity);
         cloth.solve(sdt);

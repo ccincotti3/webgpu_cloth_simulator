@@ -51,21 +51,21 @@ export default abstract class PhysicsObject {
   }
 
   solve(dt: number) {
-    // for (let i = 0; i < this.numParticles; i++) {
-    //   // Floor collision ( we currently don't have a need for it)
-    //   let y = this.positions[3 * i + 1];
-    //   const height = -1.3
-    //   if (y < height) {
-    //     vecCopy(this.positions, i, this.prevPositions, i);
-    //     this.positions[3 * i + 1] = height;
-    //   }
-    // }
+    for (let i = 0; i < this.numParticles; i++) {
+      // Floor collision ( we currently don't have a need for it)
+      let y = this.positions[3 * i + 1];
+      const height = -0.3;
+      if (y < height) {
+        vecCopy(this.positions, i, this.prevPositions, i);
+        this.positions[3 * i + 1] = height;
+      }
+    }
     for (const constraint of this.constraints) {
       constraint.solve(dt);
     }
 
     for (const collision of this.collisions) {
-      collision.solve(dt)
+      collision.solve(dt);
     }
   }
 
@@ -73,14 +73,13 @@ export default abstract class PhysicsObject {
     for (let i = 0; i < this.numParticles; i++) {
       if (this.invMass[i] == 0.0) continue;
       vecAdd(this.vels, i, gravity, 0, dt);
-      const v = Math.sqrt(vecLengthSquared(this.vels,i));
+      const v = Math.sqrt(vecLengthSquared(this.vels, i));
       const maxV = 0.2 * (0.01 / dt);
       if (v > maxV) {
-        vecScale(this.vels,i, maxV / v);
+        vecScale(this.vels, i, maxV / v);
       }
       vecCopy(this.prevPositions, i, this.positions, i);
       vecAdd(this.positions, i, this.vels, i, dt);
-
     }
   }
   postSolve(dt: number) {
@@ -200,19 +199,20 @@ export default abstract class PhysicsObject {
 }
 
 export class ClothPhysicsObject extends PhysicsObject {
-  thickness: number
-  hash: Hash
+  thickness: number;
+  hash: Hash;
   constructor(mesh: Mesh, thickness: number) {
     super(mesh);
-    this.thickness = thickness
+    this.thickness = thickness;
 
-    const spacing = thickness
+    // Spacing calculated by looking into the obj file and seeing the length between two particles.
+    const spacing = 0.033333;
     this.hash = new Hash(spacing, this.numParticles);
   }
 
   preIntegration(dt: number) {
-    this.hash.create(this.positions)
-    this.hash.queryAll(this.positions, (1/60) * 0.2 * this.thickness / dt )
+    this.hash.create(this.positions);
+    this.hash.queryAll(this.positions, ((1 / 60) * 0.2 * this.thickness) / dt);
   }
   /**
    * Adds a DistanceConstraint to the Cloth physics object

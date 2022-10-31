@@ -84,7 +84,8 @@ export function vecLengthSquared(a: DataArray, anr: number): number {
 }
 
 /**
- * Find the length of a 3-element vector within a DataArray
+ * Find the distance between two 3-element vectors within a DataArray
+ * https://en.wikipedia.org/wiki/Euclidean_distance
  */
 export function vecDistSquared(
   a: DataArray,

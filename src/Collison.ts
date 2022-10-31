@@ -39,7 +39,7 @@ export abstract class Collision {
 export default class ClothSelfCollision extends Collision {
   private thickness: number;
   private restPositions: Float32Array;
-  private hash: Hash
+  private hash: Hash;
   constructor(
     positions: Float32Array,
     prevPositions: Float32Array,
@@ -50,56 +50,83 @@ export default class ClothSelfCollision extends Collision {
     super(positions, prevPositions, invMass);
     this.thickness = thickness;
     this.restPositions = new Float32Array(positions);
-    this.hash = hash
+    this.hash = hash;
   }
   solve(dt: number) {
+    // Square to compare with dist2
+    // We can do this to save a sqrt operation
     const thickness2 = this.thickness * this.thickness;
-    for (var i = 0; i < this.numParticles; i++) {
-      if (this.invMass[i] == 0.0) continue;
-      var id0 = i;
-      var first = this.hash.firstAdjId[i];
-      var last = this.hash.firstAdjId[i + 1];
 
-      for (var j = first; j < last; j++) {
-        var id1 = this.hash.adjIds[j];
+    for (let id0 = 0; id0 < this.numParticles; id0++) {
+      if (this.invMass[id0] == 0.0) continue;
+      const adjacentParticles = this.hash.getAdjacentParticles(id0);
+
+      for (const id1 of adjacentParticles) {
         if (this.invMass[id1] == 0.0) continue;
 
+        // Determine if the distance between the two particles is smaller than
+        // the thickness... which would signify that the particles are overlapping
+        // each other.
         vecSetDiff(this.vecs, 0, this.positions, id1, this.positions, id0);
-
-        var dist2 = vecLengthSquared(this.vecs, 0);
+        const dist2 = vecLengthSquared(this.vecs, 0);
         if (dist2 > thickness2 || dist2 == 0.0) continue;
-        var restDist2 = vecDistSquared(
+
+        // If the particles have smaller rest distances than
+        // the thickness, use that to make the position correction.
+        const restDist2 = vecDistSquared(
           this.restPositions,
           id0,
           this.restPositions,
           id1
         );
 
-        var minDist = this.thickness;
+        let minDist = this.thickness;
         if (dist2 > restDist2) continue;
         if (restDist2 < thickness2) minDist = Math.sqrt(restDist2);
 
-        // position correction
-        var dist = Math.sqrt(dist2);
-        vecScale(this.vecs, 0, (minDist - dist) / dist);
-        vecAdd(this.positions, id0, this.vecs, 0, -.5);
-        vecAdd(this.positions, id1, this.vecs, 0, .5);
+        // Position correction
+        // Now finally do the sqrt op
+        const dist = Math.sqrt(dist2);
+        const correctionDist = minDist - dist;
+        if (correctionDist > 0.0) {
+          vecScale(this.vecs, 0, correctionDist / dist);
+          vecAdd(this.positions, id0, this.vecs, 0, -0.5);
+          vecAdd(this.positions, id1, this.vecs, 0, 0.5);
+        }
 
-        // velocities
-        vecSetDiff(this.vecs, 0, this.positions, id0, this.prevPositions, id0);
-        vecSetDiff(this.vecs, 1, this.positions, id1, this.prevPositions, id1);
+        // Friction Handling
+        const friction = 0.2;
 
-        // average velocity
-        vecSetSum(this.vecs, 2, this.vecs, 0, this.vecs, 1, 0.5);
+        if (friction > 0.0) {
+          // velocities
+          vecSetDiff(
+            this.vecs,
+            0,
+            this.positions,
+            id0,
+            this.prevPositions,
+            id0
+          );
+          vecSetDiff(
+            this.vecs,
+            1,
+            this.positions,
+            id1,
+            this.prevPositions,
+            id1
+          );
 
-        // velocity corrections
-        vecSetDiff(this.vecs, 0, this.vecs, 2, this.vecs, 0);
-        vecSetDiff(this.vecs, 1, this.vecs, 2, this.vecs, 1);
+          // average velocity
+          vecSetSum(this.vecs, 2, this.vecs, 0, this.vecs, 1, 0.5);
 
-        // add corrections
-        var friction = 0.0;
-        vecAdd(this.positions, id0, this.vecs, 0, friction);
-        vecAdd(this.positions, id1, this.vecs, 1, friction);
+          // velocity corrections
+          vecSetDiff(this.vecs, 0, this.vecs, 2, this.vecs, 0);
+          vecSetDiff(this.vecs, 1, this.vecs, 2, this.vecs, 1);
+
+          // add corrections
+          vecAdd(this.positions, id0, this.vecs, 0, friction);
+          vecAdd(this.positions, id1, this.vecs, 1, friction);
+        }
       }
     }
   }
