@@ -5,7 +5,11 @@ import DefaultProgram from "./programs/DefaultProgram";
 import Transformation from "./Transformation";
 import Cloth from "./Cloth";
 
-const OBJECT_URL: string = "cloth_40_40_l.obj";
+// For the simulation to work with collisions,
+// it is wise to use equal spacing between all the particles.
+// This is possible to do in Blender even if the cloth as a whole is a rectangle.
+const OBJECT_URL: string = "cloth_30_45_l.obj";
+const VERTEX_SPACING = 0.05;
 
 (async () => {
   try {
@@ -20,6 +24,7 @@ const OBJECT_URL: string = "cloth_40_40_l.obj";
 
     const modelTransformation = new Transformation();
     modelTransformation.scale = [1.0, 1.0, 1.0];
+    modelTransformation.rotationXYZ = [0, 1, 0];
 
     // Create Buffers and Bind Groups
     const meshBuffers = gpuCanvas.createMeshBuffers(mesh);
@@ -31,7 +36,7 @@ const OBJECT_URL: string = "cloth_40_40_l.obj";
     // Initalize Scene objects
     const lightModel = new Transformation();
     lightModel.translation = [5.0, 0.0, 0.0];
-    lightModel.rotationXYZ = [0, -3.14 / 2, 0];
+    lightModel.rotationXYZ = [0, 0, 0];
 
     const perspectiveCamera = new Camera(
       (2 * Math.PI) / 5,
@@ -40,23 +45,29 @@ const OBJECT_URL: string = "cloth_40_40_l.obj";
       100
     );
 
-    perspectiveCamera.translation = [0, 0.0, 3.0];
+    perspectiveCamera.translation = [0, 0.0, 2.1];
 
     // Create Physics Object
-    const cloth = new Cloth(mesh);
+
+    // thickness and spacing in hash table needed adjusting.
+    const thickness = VERTEX_SPACING;
+    const cloth = new Cloth(mesh, thickness);
 
     // Initialize physics parameters
     const dt = 1.0 / 60.0;
-    const steps = 15;
+    const steps = 10;
     const sdt = dt / steps;
-    const gravity = new Float32Array([-3, -9.8, -4]);
+    const gravity = new Float32Array([-1.1, -9.8, 2.5]);
 
-    cloth.registerDistanceConstraint(0);
+    cloth.registerDistanceConstraint(0.0);
     cloth.registerPerformantBendingConstraint(1.0);
+    cloth.registerSelfCollision();
     // cloth.registerIsometricBendingConstraint(10.0)
 
     // Start animation loop
     gpuCanvas.draw((renderPassAPI) => {
+      gravity[2] = Math.cos(Date.now() / 2000) * 15.5;
+      cloth.preIntegration(sdt);
       for (let i = 0; i < steps; i++) {
         cloth.preSolve(sdt, gravity);
         cloth.solve(sdt);

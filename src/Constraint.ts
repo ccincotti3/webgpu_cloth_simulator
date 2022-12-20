@@ -51,6 +51,54 @@ export abstract class Constraint {
   abstract solve(dt: number): void;
 }
 
+export class ConstraintFactory {
+  private positions: Float32Array;
+  private invMass: Float32Array;
+  private indices: Uint16Array;
+  private neighbors: Float32Array;
+  constructor(
+    positions: Float32Array,
+    invMass: Float32Array,
+    indices: Uint16Array,
+    neighbors: Float32Array
+  ) {
+    this.positions = positions;
+    this.invMass = invMass;
+    this.indices = indices;
+    this.neighbors = neighbors;
+  }
+
+  createDistanceConstraint(compliance: number) {
+    return new DistanceConstraint(
+      this.positions,
+      this.invMass,
+      this.indices,
+      this.neighbors,
+      compliance
+    );
+  }
+
+  createPerformantBendingConstraint(compliance: number) {
+    return new PerformantBendingConstraint(
+      this.positions,
+      this.invMass,
+      this.indices,
+      this.neighbors,
+      compliance
+    );
+  }
+
+  createIsometricBendingConstraint(compliance: number) {
+    return new IsometricBendingConstraint(
+      this.positions,
+      this.invMass,
+      this.indices,
+      this.neighbors,
+      compliance
+    );
+  }
+}
+
 /**
  * Distance constraint as defined in http://mmacklin.com/2017-EG-CourseNotes.pdf
  */

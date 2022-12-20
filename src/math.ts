@@ -84,7 +84,8 @@ export function vecLengthSquared(a: DataArray, anr: number): number {
 }
 
 /**
- * Find the length of a 3-element vector within a DataArray
+ * Find the distance between two 3-element vectors within a DataArray
+ * https://en.wikipedia.org/wiki/Euclidean_distance
  */
 export function vecDistSquared(
   a: DataArray,
@@ -150,4 +151,21 @@ export function multiply4dColumnVectorByTranspose(a: DataArray): number[][] {
   }
 
   return out;
+}
+
+export function vecSetSum(
+  dst: DataArray,
+  dnr: number,
+  a: DataArray,
+  anr: number,
+  b: DataArray,
+  bnr: number,
+  scale = 1.0
+) {
+  dnr *= 3;
+  anr *= 3;
+  bnr *= 3;
+  dst[dnr++] = (a[anr++] + b[bnr++]) * scale;
+  dst[dnr++] = (a[anr++] + b[bnr++]) * scale;
+  dst[dnr] = (a[anr] + b[bnr]) * scale;
 }
