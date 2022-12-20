@@ -69,7 +69,7 @@ export default class ClothSelfCollision extends Collision {
         // each other.
         vecSetDiff(this.vecs, 0, this.positions, id1, this.positions, id0);
         const dist2 = vecLengthSquared(this.vecs, 0);
-        if (dist2 > thickness2 || dist2 == 0.0) continue;
+        if (dist2 > thickness2 || dist2 === 0.0) continue;
 
         // If the particles have smaller rest distances than
         // the thickness, use that to make the position correction.
@@ -92,40 +92,40 @@ export default class ClothSelfCollision extends Collision {
           vecScale(this.vecs, 0, correctionDist / dist);
           vecAdd(this.positions, id0, this.vecs, 0, -0.5);
           vecAdd(this.positions, id1, this.vecs, 0, 0.5);
-        }
 
-        // Friction Handling
-        const friction = 0.2;
+          // Friction Handling
+          const dampingCoefficient = -1;
 
-        if (friction > 0.0) {
-          // velocities
-          vecSetDiff(
-            this.vecs,
-            0,
-            this.positions,
-            id0,
-            this.prevPositions,
-            id0
-          );
-          vecSetDiff(
-            this.vecs,
-            1,
-            this.positions,
-            id1,
-            this.prevPositions,
-            id1
-          );
+          if (dampingCoefficient > 0) {
+            // velocities
+            vecSetDiff(
+              this.vecs,
+              0,
+              this.positions,
+              id0,
+              this.prevPositions,
+              id0,
+            );
+            vecSetDiff(
+              this.vecs,
+              1,
+              this.positions,
+              id1,
+              this.prevPositions,
+              id1,
+            );
 
-          // average velocity
-          vecSetSum(this.vecs, 2, this.vecs, 0, this.vecs, 1, 0.5);
+            // average velocity
+            vecSetSum(this.vecs, 2, this.vecs, 0, this.vecs, 1, 0.5);
 
-          // velocity corrections
-          vecSetDiff(this.vecs, 0, this.vecs, 2, this.vecs, 0);
-          vecSetDiff(this.vecs, 1, this.vecs, 2, this.vecs, 1);
+            // velocity corrections by modifying them.
+            vecSetDiff(this.vecs, 0, this.vecs, 2, this.vecs, 0);
+            vecSetDiff(this.vecs, 1, this.vecs, 2, this.vecs, 1);
 
-          // add corrections
-          vecAdd(this.positions, id0, this.vecs, 0, friction);
-          vecAdd(this.positions, id1, this.vecs, 1, friction);
+            // add corrections
+            vecAdd(this.positions, id0, this.vecs, 0, dampingCoefficient);
+            vecAdd(this.positions, id1, this.vecs, 1, dampingCoefficient);
+          }
         }
       }
     }

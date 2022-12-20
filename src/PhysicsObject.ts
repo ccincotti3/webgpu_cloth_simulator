@@ -54,7 +54,7 @@ export default abstract class PhysicsObject {
     for (let i = 0; i < this.numParticles; i++) {
       // Floor collision ( we currently don't have a need for it)
       let y = this.positions[3 * i + 1];
-      const height = -0.3;
+      const height = -0.7
       if (y < height) {
         vecCopy(this.positions, i, this.prevPositions, i);
         this.positions[3 * i + 1] = height;
@@ -206,7 +206,7 @@ export class ClothPhysicsObject extends PhysicsObject {
     this.thickness = thickness;
 
     // Spacing calculated by looking into the obj file and seeing the length between two particles.
-    const spacing = 0.033333;
+    const spacing = thickness;
     this.hash = new Hash(spacing, this.numParticles);
   }
 

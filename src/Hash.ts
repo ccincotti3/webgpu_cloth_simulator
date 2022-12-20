@@ -4,6 +4,7 @@ import { vecDistSquared } from "./math";
  * Hash table for self collisions of the Cloth object
  *
  * https://github.com/matthias-research/pages/blob/master/tenMinutePhysics/11-hashing.pdf
+ * https://www.carmencincotti.com
  */
 export class Hash {
   private spacing: number;
