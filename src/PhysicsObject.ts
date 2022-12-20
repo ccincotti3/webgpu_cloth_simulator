@@ -54,7 +54,7 @@ export default abstract class PhysicsObject {
     for (let i = 0; i < this.numParticles; i++) {
       // Floor collision ( we currently don't have a need for it)
       let y = this.positions[3 * i + 1];
-      const height = -0.7
+      const height = -0.7;
       if (y < height) {
         vecCopy(this.positions, i, this.prevPositions, i);
         this.positions[3 * i + 1] = height;

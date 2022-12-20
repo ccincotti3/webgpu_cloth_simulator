@@ -66,7 +66,7 @@ const VERTEX_SPACING = 0.05;
 
     // Start animation loop
     gpuCanvas.draw((renderPassAPI) => {
-      gravity[2] = Math.cos(Date.now() / 2000) * 15.5
+      gravity[2] = Math.cos(Date.now() / 2000) * 15.5;
       cloth.preIntegration(sdt);
       for (let i = 0; i < steps; i++) {
         cloth.preSolve(sdt, gravity);

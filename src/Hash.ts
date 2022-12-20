@@ -68,7 +68,7 @@ export class Hash {
   /**
    * Create the spatial hash table data structure - based off of
    * https://github.com/matthias-research/pages/blob/master/tenMinutePhysics/11-hashing.pdf
-   * 
+   *
    * Theory:
    * https://www.carmencincotti.com/2022-10-31/spatial-hash-maps-part-one/
    *
@@ -82,7 +82,7 @@ export class Hash {
     this.particleMap.fill(0);
 
     // Step 1: Count
-    // Hash and iterate integer at index in arraycellCount 
+    // Hash and iterate integer at index in arraycellCount
     for (let i = 0; i < numObjects; i++) {
       const h = this.hashPos(pos, i);
       this.cellCount[h]++;
@@ -111,7 +111,7 @@ export class Hash {
    * After execution, check results in:
    *    - queryIds - particle ids found in query
    *    - querySize - number of particles found
-   * 
+   *
    * Theory:
    * https://www.carmencincotti.com/2022-11-07/spatial-hash-maps-part-two/
    */
@@ -146,11 +146,10 @@ export class Hash {
     }
   }
 
-
   /**
-   * queryAll is responsible for looping through all particles, calling query() for each, and storing/updating 
-   * the adjacent particles lists. 
-   * 
+   * queryAll is responsible for looping through all particles, calling query() for each, and storing/updating
+   * the adjacent particles lists.
+   *
    * Theory:
    * https://www.carmencincotti.com/2022-11-07/spatial-hash-maps-part-two/
    */

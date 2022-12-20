@@ -104,7 +104,7 @@ export default class ClothSelfCollision extends Collision {
               this.positions,
               id0,
               this.prevPositions,
-              id0,
+              id0
             );
             vecSetDiff(
               this.vecs,
@@ -112,7 +112,7 @@ export default class ClothSelfCollision extends Collision {
               this.positions,
               id1,
               this.prevPositions,
-              id1,
+              id1
             );
 
             // average velocity
