@@ -43,6 +43,6 @@ yarn start
 - [x] [Constraints - Fast Performant Bending](https://www.carmencincotti.com/2022-09-05/the-most-performant-bending-constraint-of-xpbd/)
 - [x] [Constraints - Isometric Bending](https://www.carmencincotti.com/2022-08-29/the-isometric-bending-constraint-of-xpbd/)
 - [] Constraints - Angular Bending
-- [x] Constraints - Collisions (Self)
+- [x] [Constraints - Collisions (Self)]()
 - [ ] Constraints - Collisions (External)
 - [ ] Damping
